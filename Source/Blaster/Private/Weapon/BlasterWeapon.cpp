@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Character/BlasterCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 
 ABlasterWeapon::ABlasterWeapon()
@@ -20,9 +21,6 @@ ABlasterWeapon::ABlasterWeapon()
 	
 	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
 	AreaSphere->SetupAttachment(RootComponent);
-	// Ensure the sphere can generate overlap events by default (helps avoid timing issues)
-	AreaSphere->SetGenerateOverlapEvents(true);
-	// Keep default responses ignored, we'll enable Pawn overlap on the authoritative side in BeginPlay
 	AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	
@@ -36,6 +34,13 @@ void ABlasterWeapon::ShowPickupWidget(bool bShowWidget)
 	{
 		PickupWidget->SetVisibility(bShowWidget);
 	}
+}
+
+void ABlasterWeapon::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABlasterWeapon, WeaponState);
 }
 
 void ABlasterWeapon::BeginPlay()
@@ -88,6 +93,49 @@ void ABlasterWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent
 	{
 		// PickupWidget->SetVisibility(false);
 		BlasterCharacter->SetOverlappingWeapon(nullptr);
+	}
+}
+
+void ABlasterWeapon::OnRep_WeaponState()
+{
+	switch (WeaponState)
+	{
+		case EWeaponState::EWS_Initial:
+			// Handle initial state logic if needed
+			break;
+		case EWeaponState::EWS_Equipped:
+			ShowPickupWidget(false);
+			break;
+		case EWeaponState::EWS_Dropped:
+			// Logic for when the weapon is dropped
+			break;
+		default:
+			break;
+	}
+	// Optionally, update the weapon's appearance or behavior based on the new state
+}
+
+void ABlasterWeapon::SetWeaponState(EWeaponState State)
+{
+	WeaponState = State;
+	switch (WeaponState)
+	{
+		case EWeaponState::EWS_Initial:
+			// Handle initial state logic if needed
+			break;
+		case EWeaponState::EWS_Equipped:
+			ShowPickupWidget(false);
+			AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			break;
+		case EWeaponState::EWS_Dropped:
+			ShowPickupWidget(true);
+			AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+			// Optionally, you can set the weapon's visibility or other properties here
+			// For example, you might want to make the weapon
+			break;
+		default:
+			break;
 	}
 }
 

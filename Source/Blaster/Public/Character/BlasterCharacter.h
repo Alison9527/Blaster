@@ -16,6 +16,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void PostInitializeComponents() override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -24,7 +25,10 @@ protected:
 	void MoveRight(float Value);
 	void Turn(float Value);
 	void LookUp(float Value);
-	
+	void EquipButtonPressed();
+	void CrouchButtonPressed();
+	void AimButtonPressed();
+	void AimButtonReleased();
 
 private:
 
@@ -39,7 +43,15 @@ private:
 	
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(ABlasterWeapon* LastWeapon);
+
+	UPROPERTY(VisibleAnywhere)
+	class UCombatComponent* CombatComponent;
+
+	UFUNCTION(Server, Reliable)
+	void SeverEquipButtonPressed();
 	
 public:
 	void SetOverlappingWeapon(ABlasterWeapon* BlasterWeapon);
+	bool IsWeaponEquipped() const;
+	bool IsAiming() const;
 };

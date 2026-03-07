@@ -24,6 +24,8 @@ class BLASTER_API ABlasterWeapon : public AActor
 public:	
 	ABlasterWeapon();
 	void ShowPickupWidget(bool bShowWidget);
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	EWeaponState GetWeaponState() const { return WeaponState; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -52,9 +54,17 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* AreaSphere;
 	
-	UPROPERTY(VisibleAnywhere, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	EWeaponState WeaponState;
+
+	UFUNCTION()
+	void OnRep_WeaponState();
 	
 	UPROPERTY(VisibleAnywhere, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* PickupWidget;
+
+public:
+	void SetWeaponState(EWeaponState State);
+	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 };
