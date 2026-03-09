@@ -10,6 +10,7 @@
 #include "BlasterComponents/CombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "BlasterTypes/TurningInPlace.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -32,6 +33,8 @@ ABlasterCharacter::ABlasterCharacter()
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	
+	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -176,7 +179,8 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 		FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation); // 计算当前瞄准朝向与初始瞄准朝向之间的标准化角差
 		AO_Yaw = DeltaRot.Yaw; // 将角差的 Yaw 分量作为动画蓝图中的 AO_Yaw 变量，用于调整角色的上半身旋转以匹配瞄准方向
 		AO_Pitch = DeltaRot.Pitch; // 将角差的 Pitch 分量作为动画蓝图中的 AO_Pitch 变量，用于调整角色的上半身旋转以匹配瞄准方向
-		bUseControllerRotationYaw = false;
+		bUseControllerRotationYaw = true;
+		TurnInPlace(DeltaTime);
 	}
 
 	if (Speed > 0.f || bIsInAir) // 如果角色在移动或在空中
@@ -184,6 +188,7 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		AO_Yaw = 0.f; // 移动或在空中时重置 AO_Yaw，因为角色的身体会跟随移动方向旋转
 		bUseControllerRotationYaw = true;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning; // 不转向
 	}
 
 	AO_Pitch = GetBaseAimRotation().Pitch;
@@ -200,6 +205,18 @@ void ABlasterCharacter::SeverEquipButtonPressed_Implementation()
 	if (CombatComponent)
 	{
 		CombatComponent->EquipWeapon(OverlappingWeapon);
+	}
+}
+
+void ABlasterCharacter::TurnInPlace(float DeltaTime)
+{
+	if (AO_Yaw > 90.f)
+	{
+		TurningInPlace = ETurningInPlace::ETIP_Right;
+	}
+	else if (AO_Yaw < -90.f)
+	{
+		TurningInPlace = ETurningInPlace::ETIP_Left;
 	}
 }
 
@@ -228,5 +245,14 @@ bool ABlasterCharacter::IsWeaponEquipped() const
 bool ABlasterCharacter::IsAiming() const
 {
 	return CombatComponent && CombatComponent->GetAiming();
+}
+
+ABlasterWeapon* ABlasterCharacter::GetEquippedWeapon()
+{
+	if (CombatComponent)
+	{
+		return CombatComponent->GetEquippedWeapon();
+	}
+	return nullptr;
 }
 

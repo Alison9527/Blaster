@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "BlasterWeapon.generated.h"
 
+class USkeletalMeshComponent; // forward declaration
+
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
 {
@@ -21,7 +23,7 @@ class BLASTER_API ABlasterWeapon : public AActor
 {
 	GENERATED_BODY()
 	
-public:	
+public: 	
 	ABlasterWeapon();
 	void ShowPickupWidget(bool bShowWidget);
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;

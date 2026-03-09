@@ -5,6 +5,7 @@
 #include "Character/BlasterCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Weapon/BlasterWeapon.h"
 
 void UBlasterAnimInstance::NativeInitializeAnimation()
 {
@@ -31,8 +32,10 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsInAir = BlasterCharacter->GetCharacterMovement()->IsFalling(); // 判断是否在空中（跳跃或掉落）
 	bIsAccelerating = BlasterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f; // 判断是否正在加速（是否有输入导致加速）
 	bWeaponEquipped = BlasterCharacter->IsWeaponEquipped(); // 判断是否装备武器
+	EquippedWeapon = BlasterCharacter->GetEquippedWeapon(); // 获取当前装备的武器指针
 	bIsCrouched = BlasterCharacter->IsCrouched(); // 判断是否处于下蹲状态
 	bAiming = BlasterCharacter->IsAiming(); // 判断是否处于瞄准状态
+	TurningInPlace = BlasterCharacter->GetTurningInPlace(); // 获取角色当前的转向状态（枚举值）
 
 	// Offset Yaw for Strafing
 	FRotator AimRotation = BlasterCharacter->GetBaseAimRotation(); // 获取角色当前的瞄准朝向（通常由控制器决定）
@@ -50,4 +53,14 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	AO_Yaw = BlasterCharacter->GetAO_Yaw();
 	AO_Pitch = BlasterCharacter->GetAO_Pitch(); // 获取角色的 AO_Yaw 和 AO_Pitch，用于动画蓝图中的上半身旋转调整
+	
+	if (bWeaponEquipped && EquippedWeapon && EquippedWeapon->GetWeaponMesh() && BlasterCharacter->GetMesh())
+	{
+		LeftHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World); // 获取武器左手插槽的世界变换
+		FVector OutPosition;
+		FRotator OutRotation;
+		BlasterCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation); // 将左手插槽的世界位置和旋转转换为角色骨骼空间
+		LeftHandTransform.SetLocation(OutPosition); // 更新左手变换的位置为骨骼空间位置
+		LeftHandTransform.SetRotation(FQuat(OutRotation)); // 更新左手变换的旋转为骨骼空间旋转
+	}
 }
