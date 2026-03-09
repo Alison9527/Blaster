@@ -47,4 +47,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	const float Target = Delta.Yaw / DeltaSeconds; // 将旋转差转换为旋转速度（度/秒），作为目标倾斜值
 	const float Interp = FMath::FInterpTo(Lean, Target, DeltaSeconds, 6.f); // 平滑插值当前 Lean 值 toward 目标，插值速度为 6
 	Lean = FMath::Clamp(Interp, -90.f, 90); // 限制 Lean 值范围，避免极端数值（用于角色左右倾斜动画）
+
+	AO_Yaw = BlasterCharacter->GetAO_Yaw();
+	AO_Pitch = BlasterCharacter->GetAO_Pitch(); // 获取角色的 AO_Yaw 和 AO_Pitch，用于动画蓝图中的上半身旋转调整
 }

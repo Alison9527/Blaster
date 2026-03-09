@@ -8,6 +8,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Weapon/BlasterWeapon.h"
 #include "BlasterComponents/CombatComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -28,12 +30,20 @@ ABlasterCharacter::ABlasterCharacter()
 	CombatComponent->SetIsReplicated(true);
 
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 }
 
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ABlasterCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	AimOffset(DeltaTime);
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -152,6 +162,39 @@ void ABlasterCharacter::AimButtonReleased()
 	}
 }
 
+void ABlasterCharacter::AimOffset(float DeltaTime)
+{
+	if (CombatComponent && CombatComponent->GetEquippedWeapon() == nullptr) return; // 如果没有装备武器则不计算瞄准偏移
+	FVector Velocity = GetVelocity(); // 获取角色当前速度向量
+	Velocity.Z = 0.f; // 忽略垂直分量，只关心平面速度
+	float Speed = Velocity.Size(); // 根据平面速度计算移动速度大小，供动画使用
+	bool bIsInAir = GetCharacterMovement()->IsFalling(); // 判断是否在空中（跳跃或掉落）
+
+	if (Speed == 0.f && !bIsInAir) // 如果角色静止且不在空中
+	{
+		FRotator CurrentAimRotation = GetBaseAimRotation(); // 获取当前的瞄准朝向（通常由控制器决定）
+		FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation); // 计算当前瞄准朝向与初始瞄准朝向之间的标准化角差
+		AO_Yaw = DeltaRot.Yaw; // 将角差的 Yaw 分量作为动画蓝图中的 AO_Yaw 变量，用于调整角色的上半身旋转以匹配瞄准方向
+		AO_Pitch = DeltaRot.Pitch; // 将角差的 Pitch 分量作为动画蓝图中的 AO_Pitch 变量，用于调整角色的上半身旋转以匹配瞄准方向
+		bUseControllerRotationYaw = false;
+	}
+
+	if (Speed > 0.f || bIsInAir) // 如果角色在移动或在空中
+	{
+		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		AO_Yaw = 0.f; // 移动或在空中时重置 AO_Yaw，因为角色的身体会跟随移动方向旋转
+		bUseControllerRotationYaw = true;
+	}
+
+	AO_Pitch = GetBaseAimRotation().Pitch;
+	if (AO_Pitch > 90.f && !IsLocallyControlled()) // 如果 Pitch 大于 90 且不是本地控制的角色（可能是其他玩家的角色）
+	{
+		FVector2D InRange(270.f, 360.f);
+		FVector2D OutRange(-90, 0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch); // 将 Pitch 从 270-360 映射到 -90-0，确保其他玩家看到的角色 Pitch 在合理范围内
+	}
+}
+
 void ABlasterCharacter::SeverEquipButtonPressed_Implementation()
 {
 	if (CombatComponent)
@@ -185,10 +228,5 @@ bool ABlasterCharacter::IsWeaponEquipped() const
 bool ABlasterCharacter::IsAiming() const
 {
 	return CombatComponent && CombatComponent->GetAiming();
-}
-
-void ABlasterCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 
