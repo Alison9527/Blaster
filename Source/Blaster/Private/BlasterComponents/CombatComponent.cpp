@@ -8,6 +8,7 @@
 #include "Components/SphereComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 UCombatComponent::UCombatComponent()
@@ -26,6 +27,15 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 	if (!Character->HasAuthority())
 	{
 		ServerSetAiming(bIsAiming);
+	}
+}
+
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (EquippedWeapon && Character)
+	{
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false; // Character will not rotate to the direction of movement when aiming
+		Character->bUseControllerRotationYaw = true; // Character will rotate based on controller
 	}
 }
 
