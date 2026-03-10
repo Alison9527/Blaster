@@ -6,7 +6,10 @@
 #include "Components/WidgetComponent.h"
 #include "Character/BlasterCharacter.h"
 #include "Net/UnrealNetwork.h"
-
+#include "Animation/AnimationAsset.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
+#include "Weapon/Casing.h"
 
 ABlasterWeapon::ABlasterWeapon()
 {
@@ -43,6 +46,23 @@ void ABlasterWeapon::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 	DOREPLIFETIME(ABlasterWeapon, WeaponState);
 }
 
+void ABlasterWeapon::Fire(const FVector& HitTarget)
+{
+	if (WeaponMesh && FireAnimation)
+	{
+		WeaponMesh->PlayAnimation(FireAnimation, false);
+	}
+	if (CasingClass)
+	{
+		const USkeletalMeshSocket* AmmoEjectSocket = WeaponMesh->GetSocketByName(FName("AmmoEject"));
+		if (AmmoEjectSocket)
+		{
+			FTransform SocketTransform = AmmoEjectSocket->GetSocketTransform(WeaponMesh);
+			GetWorld()->SpawnActor<ACasing>(CasingClass, SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator());
+		}
+	}
+}
+
 void ABlasterWeapon::BeginPlay()
 {
 	Super::BeginPlay();
@@ -69,7 +89,6 @@ void ABlasterWeapon::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("BlasterWeapon::BeginPlay Name=%s HasAuthority=%d (no binding done on client) AreaSphere.GenerateOverlap=%d Radius=%.1f"),
 			*GetName(), HasAuthority(), AreaSphere->GetGenerateOverlapEvents(), AreaSphere->GetUnscaledSphereRadius());
 	}
-	
 }
 
 void ABlasterWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
