@@ -33,8 +33,11 @@ ABlasterCharacter::ABlasterCharacter()
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetCharacterMovement()->RotationRate = FRotator(0, 0, 850.f);
 	
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+	NetUpdateFrequency = 66.0f;
+	MinNetUpdateFrequency = 33.0f;
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -53,7 +56,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ABlasterCharacter::Jump);
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABlasterCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABlasterCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &ABlasterCharacter::Turn);
@@ -179,6 +182,10 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 		FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation); // 计算当前瞄准朝向与初始瞄准朝向之间的标准化角差
 		AO_Yaw = DeltaRot.Yaw; // 将角差的 Yaw 分量作为动画蓝图中的 AO_Yaw 变量，用于调整角色的上半身旋转以匹配瞄准方向
 		AO_Pitch = DeltaRot.Pitch; // 将角差的 Pitch 分量作为动画蓝图中的 AO_Pitch 变量，用于调整角色的上半身旋转以匹配瞄准方向
+		if (TurningInPlace == ETurningInPlace::ETIP_NotTurning) 
+		{
+			InterpAO_Yaw = AO_Yaw;
+		}
 		bUseControllerRotationYaw = true;
 		TurnInPlace(DeltaTime);
 	}
@@ -200,6 +207,18 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 	}
 }
 
+void ABlasterCharacter::Jump()
+{
+	if (bIsCrouched())
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Super::Jump();
+	}
+}
+
 void ABlasterCharacter::SeverEquipButtonPressed_Implementation()
 {
 	if (CombatComponent)
@@ -217,6 +236,16 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime)
 	else if (AO_Yaw < -90.f)
 	{
 		TurningInPlace = ETurningInPlace::ETIP_Left;
+	}
+	if (TurningInPlace != ETurningInPlace::ETIP_NotTurning)
+	{
+		InterpAO_Yaw = FMath::FInterpTo(InterpAO_Yaw, 0.f, DeltaTime, 4.f);
+		AO_Yaw = InterpAO_Yaw;
+		if (FMath::Abs(AO_Yaw) < 15.f)
+		{
+			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+			StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		}	
 	}
 }
 
