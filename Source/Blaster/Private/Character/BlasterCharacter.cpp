@@ -33,6 +33,7 @@ ABlasterCharacter::ABlasterCharacter()
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 	GetCharacterMovement()->RotationRate = FRotator(0, 0, 850.f);
 	
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
@@ -50,6 +51,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	AimOffset(DeltaTime);
+	HideCameralIfCharacterClose();
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -280,6 +282,27 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime)
 	}
 }
 
+void ABlasterCharacter::HideCameralIfCharacterClose()
+{
+	if (!IsLocallyControlled()) return; // 只有本地控制的角色才需要隐藏摄像机
+	if ((CameraComponent->GetComponentLocation() - GetActorLocation()).Size() < CameraThreshold) // 如果摄像机与角色之间的距离小于设定的阈值
+	{
+		GetMesh()->SetVisibility(false); // 隐藏角色的网格组件
+		if (CombatComponent && CombatComponent->GetEquippedWeapon() && CombatComponent->GetEquippedWeapon()->GetWeaponMesh()) // 如果角色装备了武器
+		{
+			CombatComponent->GetEquippedWeapon()->GetWeaponMesh()->bOwnerNoSee = true;
+		}
+	}
+	else
+	{
+		GetMesh()->SetVisibility(true);
+		if (CombatComponent && CombatComponent->GetEquippedWeapon() && CombatComponent->GetEquippedWeapon()->GetWeaponMesh()) // 如果角色装备了武器
+		{
+			CombatComponent->GetEquippedWeapon()->GetWeaponMesh()->bOwnerNoSee = false;
+		}
+	}
+}
+
 void ABlasterCharacter::SetOverlappingWeapon(ABlasterWeapon* BlasterWeapon)
 {
 	if (OverlappingWeapon)
@@ -305,6 +328,15 @@ bool ABlasterCharacter::IsWeaponEquipped() const
 bool ABlasterCharacter::IsAiming() const
 {
 	return CombatComponent && CombatComponent->GetAiming();
+}
+
+FVector ABlasterCharacter::GetHitTarget()
+{
+	if (CombatComponent)
+	{
+		return CombatComponent->HitTarget;
+	}
+	return FVector();
 }
 
 ABlasterWeapon* ABlasterCharacter::GetEquippedWeapon()

@@ -5,10 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "BlasterTypes/TurningInPlace.h"
+#include "Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
 UCLASS()
-class BLASTER_API ABlasterCharacter : public ACharacter
+class BLASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
 {
 	GENERATED_BODY()
 
@@ -63,6 +64,11 @@ private:
 	
 	ETurningInPlace TurningInPlace;
 	void TurnInPlace(float DeltaTime);
+	
+	void HideCameralIfCharacterClose();
+	
+	UPROPERTY(EditAnywhere)
+	float CameraThreshold = 200.f;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 	class UAnimMontage* FireWeaponMontage;
@@ -74,6 +80,8 @@ public:
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
+	FVector GetHitTarget();
+	FORCEINLINE UCameraComponent* GetCameraComponent() const { return CameraComponent; }
 	
 	ABlasterWeapon* GetEquippedWeapon();
 };

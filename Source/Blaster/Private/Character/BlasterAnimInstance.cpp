@@ -62,5 +62,19 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		BlasterCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation); // 将左手插槽的世界位置和旋转转换为角色骨骼空间
 		LeftHandTransform.SetLocation(OutPosition); // 更新左手变换的位置为骨骼空间位置
 		LeftHandTransform.SetRotation(FQuat(OutRotation)); // 更新左手变换的旋转为骨骼空间旋转
+		
+		if (BlasterCharacter->IsLocallyControlled()) // 如果是本地控制的角色
+		{
+			bLocallyControlled = true; // 设置本地控制标志为 true
+			FTransform RightHandTransform = BlasterCharacter->GetMesh()->GetSocketTransform(FName("hand_r"), ERelativeTransformSpace::RTS_World); // 获取角色右手插槽的世界变换
+			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - BlasterCharacter->GetHitTarget())); // 计算从右手位置到角色瞄准目标的旋转，用于调整角色的上半身朝向
+			RightHandRotation = FMath::RInterpTo(RightHandRotation, LookAtRotation, DeltaSeconds, 6.f); // 平滑插值当前 RightHandRotation toward 计算得到的 LookAtRotation，插值速度为 6
+		}
+		
+		FTransform MuzzleTipTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("MuzzleFlash"), ERelativeTransformSpace::RTS_World); // 获取武器枪口插槽的世界变换
+		FVector MuzzleXVector(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X)); // 从枪口变换的旋转中提取出 X 轴向量，表示枪口的前方方向
+		FRotator MuzzleRotation = MuzzleXVector.Rotation(); // 将枪口前方向量转换为旋转，用于调整角色的上半身朝向
+		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation() + MuzzleXVector * 1000.f, FColor::Red); // 在游戏世界中绘制一条红色线段，表示枪口的前方方向，长度为 30 单位
+		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), BlasterCharacter->GetHitTarget(), FColor::Green); // 在游戏世界中绘制一条绿色线段，表示从枪口到角色瞄准目标的方向，长度为两者之间的距离
 	}
 }
