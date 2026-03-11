@@ -2,6 +2,8 @@
 
 
 #include "Character/BlasterCharacter.h"
+
+#include "Blaster/Blaster.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -11,6 +13,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterTypes/TurningInPlace.h"
+#include "Blaster/Blaster.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -32,6 +35,7 @@ ABlasterCharacter::ABlasterCharacter()
 
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 	GetCharacterMovement()->RotationRate = FRotator(0, 0, 850.f);
@@ -44,6 +48,13 @@ ABlasterCharacter::ABlasterCharacter()
 	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 }
 
+void ABlasterCharacter::OnRep_ReplicatedBasedMovement()
+{
+	Super::OnRep_ReplicatedBasedMovement();
+	SimProxiesTurn();
+	TimeSinceLastMovementReplication = 0.f;
+}
+
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -53,7 +64,20 @@ void ABlasterCharacter::BeginPlay()
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	AimOffset(DeltaTime);
+
+	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
+	{
+		AimOffset(DeltaTime);
+	}
+	else
+	{
+		TimeSinceLastMovementReplication += DeltaTime;
+		 if (TimeSinceLastMovementReplication > 0.25f)
+		 {
+		 	OnRep_ReplicatedBasedMovement();
+		 }
+		CalculateAO_Pitch();
+	}
 	HideCameralIfCharacterClose();
 }
 
@@ -204,13 +228,12 @@ void ABlasterCharacter::AimButtonReleased()
 void ABlasterCharacter::AimOffset(float DeltaTime)
 {
 	if (CombatComponent && CombatComponent->GetEquippedWeapon() == nullptr) return; // 如果没有装备武器则不计算瞄准偏移
-	FVector Velocity = GetVelocity(); // 获取角色当前速度向量
-	Velocity.Z = 0.f; // 忽略垂直分量，只关心平面速度
-	float Speed = Velocity.Size(); // 根据平面速度计算移动速度大小，供动画使用
+	float Speed = CalculateSpeed();
 	bool bIsInAir = GetCharacterMovement()->IsFalling(); // 判断是否在空中（跳跃或掉落）
 
 	if (Speed == 0.f && !bIsInAir) // 如果角色静止且不在空中
 	{
+		bRotateRootBone = true;
 		FRotator CurrentAimRotation = GetBaseAimRotation(); // 获取当前的瞄准朝向（通常由控制器决定）
 		FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation); // 计算当前瞄准朝向与初始瞄准朝向之间的标准化角差
 		AO_Yaw = DeltaRot.Yaw; // 将角差的 Yaw 分量作为动画蓝图中的 AO_Yaw 变量，用于调整角色的上半身旋转以匹配瞄准方向
@@ -225,19 +248,48 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 
 	if (Speed > 0.f || bIsInAir) // 如果角色在移动或在空中
 	{
+		bRotateRootBone = true;
 		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		AO_Yaw = 0.f; // 移动或在空中时重置 AO_Yaw，因为角色的身体会跟随移动方向旋转
 		bUseControllerRotationYaw = true;
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning; // 不转向
 	}
+	CalculateAO_Pitch();
+}
 
-	AO_Pitch = GetBaseAimRotation().Pitch;
-	if (AO_Pitch > 90.f && !IsLocallyControlled()) // 如果 Pitch 大于 90 且不是本地控制的角色（可能是其他玩家的角色）
+void ABlasterCharacter::SimProxiesTurn()
+{
+	if (CombatComponent == nullptr || CombatComponent->GetEquippedWeapon() == nullptr) return; // 如果没有装备武器则不计算转向
+
+	bRotateRootBone = false;
+	float Speed = CalculateSpeed();
+	if (Speed > 0.f)
 	{
-		FVector2D InRange(270.f, 360.f);
-		FVector2D OutRange(-90, 0.f);
-		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch); // 将 Pitch 从 270-360 映射到 -90-0，确保其他玩家看到的角色 Pitch 在合理范围内
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
 	}
+	
+	ProxyRotationLastFrame = ProxyRotation;
+	ProxyRotation = GetActorRotation();
+	ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
+
+	if (FMath::Abs(ProxyYaw) > TurnThreshold)
+	{
+		if (ProxyYaw > TurnThreshold)
+		{
+			TurningInPlace = ETurningInPlace::ETIP_Right;
+		}
+		else if (ProxyYaw < -TurnThreshold)
+		{
+			TurningInPlace = ETurningInPlace::ETIP_Left;
+		}
+		else
+		{
+			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		}
+		return;
+	}
+	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 }
 
 void ABlasterCharacter::Jump()
@@ -298,6 +350,11 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime)
 	}
 }
 
+void ABlasterCharacter::MulticastHit_Implementation()
+{
+	PlayHitReactMontage();
+}
+
 void ABlasterCharacter::HideCameralIfCharacterClose()
 {
 	if (!IsLocallyControlled()) return; // 只有本地控制的角色才需要隐藏摄像机
@@ -317,6 +374,13 @@ void ABlasterCharacter::HideCameralIfCharacterClose()
 			CombatComponent->GetEquippedWeapon()->GetWeaponMesh()->bOwnerNoSee = false;
 		}
 	}
+}
+
+float ABlasterCharacter::CalculateSpeed()
+{
+	FVector Velocity = GetVelocity(); // 获取角色当前速度向量
+	Velocity.Z = 0.f; // 忽略垂直分量，只关心平面速度
+	return Velocity.Size(); // 根据平面速度计算移动速度大小，供动画使用
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(ABlasterWeapon* BlasterWeapon)
@@ -362,5 +426,16 @@ ABlasterWeapon* ABlasterCharacter::GetEquippedWeapon()
 		return CombatComponent->GetEquippedWeapon();
 	}
 	return nullptr;
+}
+
+void ABlasterCharacter::CalculateAO_Pitch()
+{
+	AO_Pitch = GetBaseAimRotation().Pitch;
+	if (AO_Pitch > 90.f && !IsLocallyControlled()) // 如果 Pitch 大于 90 且不是本地控制的角色（可能是其他玩家的角色）
+	{
+		FVector2D InRange(270.f, 360.f);
+		FVector2D OutRange(-90, 0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch); // 将 Pitch 从 270-360 映射到 -90-0，确保其他玩家看到的角色 Pitch 在合理范围内
+	}
 }
 

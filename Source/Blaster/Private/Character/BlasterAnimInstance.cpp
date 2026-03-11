@@ -36,6 +36,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsCrouched = BlasterCharacter->IsCrouched(); // 判断是否处于下蹲状态
 	bAiming = BlasterCharacter->IsAiming(); // 判断是否处于瞄准状态
 	TurningInPlace = BlasterCharacter->GetTurningInPlace(); // 获取角色当前的转向状态（枚举值）
+	bRotateRootBone = BlasterCharacter->ShouldRotateRootBone(); // 判断是否需要旋转根骨骼（通常用于转向动画）
 
 	// Offset Yaw for Strafing
 	FRotator AimRotation = BlasterCharacter->GetBaseAimRotation(); // 获取角色当前的瞄准朝向（通常由控制器决定）

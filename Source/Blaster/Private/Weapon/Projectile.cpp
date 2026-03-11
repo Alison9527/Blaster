@@ -9,6 +9,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystem.h"
+#include "Blaster/Blaster.h"
 
 
 AProjectile::AProjectile()
@@ -23,6 +24,7 @@ AProjectile::AProjectile()
 	CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+	CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Block);
  
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(FName("ProjectileMovementComponent"));
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
@@ -52,7 +54,7 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 		ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 		if (BlasterCharacter)
 		{
-			BlasterCharacter->PlayHitReactMontage();
+			BlasterCharacter->MulticastHit();
 			// 这里以后可以添加 ApplyDamage 逻辑
 		}
 	}
