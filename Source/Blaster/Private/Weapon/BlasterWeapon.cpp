@@ -78,10 +78,6 @@ void ABlasterWeapon::BeginPlay()
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &ABlasterWeapon::OnSphereOverlap);
 		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &ABlasterWeapon::OnSphereEndOverlap);
-
-		UE_LOG(LogTemp, Warning, TEXT("BlasterWeapon::BeginPlay Name=%s HasAuthority=%d AreaSphere.GenerateOverlap=%d CollisionEnabled=%d Radius=%.1f"),
-			*GetName(), HasAuthority(), AreaSphere->GetGenerateOverlapEvents(), (int32)AreaSphere->GetCollisionEnabled(), AreaSphere->GetUnscaledSphereRadius());
-		UE_LOG(LogTemp, Warning, TEXT("BlasterWeapon::BeginPlay Bound OnComponentBegin/EndOverlap (server)"));
 	}
 	else
 	{

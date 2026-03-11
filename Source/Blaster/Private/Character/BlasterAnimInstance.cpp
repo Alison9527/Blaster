@@ -74,7 +74,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		FTransform MuzzleTipTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("MuzzleFlash"), ERelativeTransformSpace::RTS_World); // 获取武器枪口插槽的世界变换
 		FVector MuzzleXVector(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X)); // 从枪口变换的旋转中提取出 X 轴向量，表示枪口的前方方向
 		FRotator MuzzleRotation = MuzzleXVector.Rotation(); // 将枪口前方向量转换为旋转，用于调整角色的上半身朝向
-		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation() + MuzzleXVector * 1000.f, FColor::Red); // 在游戏世界中绘制一条红色线段，表示枪口的前方方向，长度为 30 单位
-		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), BlasterCharacter->GetHitTarget(), FColor::Green); // 在游戏世界中绘制一条绿色线段，表示从枪口到角色瞄准目标的方向，长度为两者之间的距离
+		// DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation() + MuzzleXVector * 1000.f, FColor::Red); // 在游戏世界中绘制一条红色线段，表示枪口的前方方向，长度为 30 单位
+		// DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), BlasterCharacter->GetHitTarget(), FColor::Green); // 在游戏世界中绘制一条绿色线段，表示从枪口到角色瞄准目标的方向，长度为两者之间的距离
 	}
 }
