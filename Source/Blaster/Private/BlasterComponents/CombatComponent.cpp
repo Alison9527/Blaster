@@ -181,7 +181,7 @@ void UCombatComponent::Fire()
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
-	if (bFireButtonPressed)
+	if (bFireButtonPressed && EquippedWeapon)
 	{
 		Fire();
 	}
