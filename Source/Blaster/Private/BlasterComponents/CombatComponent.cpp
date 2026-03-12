@@ -50,6 +50,13 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		HitTarget = HitResult.ImpactPoint;
 		InterpFOV(DeltaTime);
 	}
+	if (GEngine)
+	{
+		// 打印bFireButtonPressed
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Yellow, FString::Printf(TEXT("bFireButtonPressed: %s"), bFireButtonPressed ? TEXT("true") : TEXT("false")));
+		 // 打印bCanFire
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Yellow, FString::Printf(TEXT("bCanFire: %s"), bCanFire ? TEXT("true") : TEXT("false")));
+	}
   }
 
 void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
