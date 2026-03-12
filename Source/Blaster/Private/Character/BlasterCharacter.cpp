@@ -41,8 +41,8 @@ ABlasterCharacter::ABlasterCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0, 0, 850.f);
 	
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
-	NetUpdateFrequency = 66.0f;
-	MinNetUpdateFrequency = 33.0f;
+	SetNetUpdateFrequency(66.0f);
+	SetMinNetUpdateFrequency(33.0f);
 
 
 	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
@@ -103,6 +103,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME(ABlasterCharacter, Health);
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -381,6 +382,10 @@ float ABlasterCharacter::CalculateSpeed()
 	FVector Velocity = GetVelocity(); // 获取角色当前速度向量
 	Velocity.Z = 0.f; // 忽略垂直分量，只关心平面速度
 	return Velocity.Size(); // 根据平面速度计算移动速度大小，供动画使用
+}
+
+void ABlasterCharacter::OnRep_Health()
+{
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(ABlasterWeapon* BlasterWeapon)
