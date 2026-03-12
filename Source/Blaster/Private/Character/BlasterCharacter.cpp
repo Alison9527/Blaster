@@ -14,6 +14,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterTypes/TurningInPlace.h"
 #include "Blaster/Blaster.h"
+#include "PlayerController/BlasterPlayerController.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -59,6 +60,10 @@ void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &ABlasterCharacter::ReceiveDamage);
+	}
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -139,6 +144,14 @@ void ABlasterCharacter::PlayHitReactMontage()
 		FName SectionName = FName("FromFront");
 		AnimInstance->Montage_JumpToSection(SectionName, HitReactMontage);
 	}
+}
+
+void ABlasterCharacter::ReceiveDamage(AActor* DamageActor, float Damage, const UDamageType* DamageType,
+	class AController* InstigatorController, AActor* DamageCauser)
+{
+	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+	UpdateHUDHealth();
+	PlayHitReactMontage();
 }
 
 void ABlasterCharacter::MoveForward(float Value)
@@ -351,11 +364,6 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime)
 	}
 }
 
-void ABlasterCharacter::MulticastHit_Implementation()
-{
-	PlayHitReactMontage();
-}
-
 void ABlasterCharacter::HideCameralIfCharacterClose()
 {
 	if (!IsLocallyControlled()) return; // 只有本地控制的角色才需要隐藏摄像机
@@ -386,7 +394,19 @@ float ABlasterCharacter::CalculateSpeed()
 
 void ABlasterCharacter::OnRep_Health()
 {
+	UpdateHUDHealth();
+	PlayHitReactMontage();
 }
+
+void ABlasterCharacter::UpdateHUDHealth()
+{
+	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if (BlasterPlayerController)
+	{
+		BlasterPlayerController->SetHUDHealth(Health, MaxHealth);
+	}
+}
+
 
 void ABlasterCharacter::SetOverlappingWeapon(ABlasterWeapon* BlasterWeapon)
 {

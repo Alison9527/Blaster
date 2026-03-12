@@ -48,18 +48,6 @@ void AProjectile::BeginPlay()
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// 4. 逻辑解耦：销毁动作由服务器发起
-	if (OtherActor && OtherActor != this)
-	{
-		ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-		if (BlasterCharacter)
-		{
-			BlasterCharacter->MulticastHit();
-			// 这里以后可以添加 ApplyDamage 逻辑
-		}
-	}
-
-	// 触发销毁流程，系统会自动调用 Destroyed()
 	Destroy();
 }
 
