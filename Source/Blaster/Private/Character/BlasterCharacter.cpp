@@ -13,8 +13,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterTypes/TurningInPlace.h"
-#include "Blaster/Blaster.h"
 #include "PlayerController/BlasterPlayerController.h"
+#include "GameMode/BlasterGameMode.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -56,6 +56,12 @@ void ABlasterCharacter::OnRep_ReplicatedBasedMovement()
 	TimeSinceLastMovementReplication = 0.f;
 }
 
+void ABlasterCharacter::Elim_Implementation()
+{
+	bElimmed = true;
+	PlayElimMontage();
+}
+
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -64,6 +70,7 @@ void ABlasterCharacter::BeginPlay()
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ABlasterCharacter::ReceiveDamage);
 	}
+	UpdateHUDHealth();
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -133,6 +140,15 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 	}
 }
 
+void ABlasterCharacter::PlayElimMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ElimMontage)
+	{
+		AnimInstance->Montage_Play(ElimMontage);
+	}
+}
+
 void ABlasterCharacter::PlayHitReactMontage()
 {
 	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
@@ -152,6 +168,17 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamageActor, float Damage, const U
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	UpdateHUDHealth();
 	PlayHitReactMontage();
+
+	if (Health == 0.f)
+	{
+		ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+		if (BlasterGameMode)
+		{
+			BlasterPlayerController = BlasterPlayerController == nullptr ? nullptr : BlasterPlayerController;
+			ABlasterPlayerController* AttackController = Cast<ABlasterPlayerController>(InstigatorController);
+			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, AttackController);
+		}
+	}     
 }
 
 void ABlasterCharacter::MoveForward(float Value)

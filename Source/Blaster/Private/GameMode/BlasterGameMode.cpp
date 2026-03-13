@@ -2,6 +2,8 @@
 
 
 #include "GameMode/BlasterGameMode.h"
+#include "Character/BlasterCharacter.h"
+#include "PlayerController/BlasterPlayerController.h"
 
 namespace MatchState
 {
@@ -71,6 +73,10 @@ float ABlasterGameMode::CalculateDamage(AController* Attacker, AController* Vict
 
 void ABlasterGameMode::PlayerEliminated(class ABlasterCharacter* ElimmedCharacter, class ABlasterPlayerController* VictimController, ABlasterPlayerController* AttackerController)
 {
+	if (ElimmedCharacter)
+	{
+		ElimmedCharacter->Elim();
+	}
 	// if (AttackerController == nullptr || AttackerController->PlayerState == nullptr) return;
 	// if (VictimController == nullptr || VictimController->PlayerState == nullptr) return;
 	// ABlasterPlayerState* AttackerPlayerState = AttackerController ? Cast<ABlasterPlayerState>(AttackerController->PlayerState) : nullptr;

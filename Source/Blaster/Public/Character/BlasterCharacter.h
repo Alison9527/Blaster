@@ -20,8 +20,11 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	void PlayFireMontage(bool bAiming);
-
+	void PlayElimMontage();
 	virtual void OnRep_ReplicatedBasedMovement() override;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Elim();
 
 protected:
 	virtual void BeginPlay() override;
@@ -84,6 +87,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat)
 	class UAnimMontage* HitReactMontage;
 
+	UPROPERTY(EditAnywhere, Category = Combat)
+	class UAnimMontage* ElimMontage;
+
 	bool bRotateRootBone;
 	float TurnThreshold = 15.f;
 	FRotator ProxyRotationLastFrame;
@@ -105,6 +111,8 @@ private:
 	void OnRep_Health();
 
 	class ABlasterPlayerController* BlasterPlayerController;
+
+	bool bElimmed = false;
 	
 public:
 	void SetOverlappingWeapon(ABlasterWeapon* BlasterWeapon);
@@ -116,6 +124,7 @@ public:
 	FVector GetHitTarget();
 	FORCEINLINE UCameraComponent* GetCameraComponent() const { return CameraComponent; }
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
+	FORCEINLINE bool IsElimmed() const { return bElimmed; }
 	
 	ABlasterWeapon* GetEquippedWeapon();
 
