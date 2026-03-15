@@ -28,6 +28,7 @@ public:
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastElim();
+	virtual void Destroyed() override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -50,6 +51,8 @@ protected:
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamageActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 	void UpdateHUDHealth();
+	// Poll for any relelvant classes and initialize our HUD
+	void PollInit();
 	
 private:
 
@@ -146,6 +149,21 @@ private:
 	UPROPERTY(EditAnywhere, Category = Elim)
 	UMaterialInstance* DissolveMaterialInstance;
 	
+	
+	/*
+	 * Elim bot
+	 */
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* ElimBotEffect;
+	
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* ElimBotComponent;
+	
+	UPROPERTY(EditAnywhere)
+	class USoundCue* ElimBotSound;
+	
+	class ABlasterPlayerState* BlasterPlayerState;
+	
 public:
 	void SetOverlappingWeapon(ABlasterWeapon* BlasterWeapon);
 	bool IsWeaponEquipped() const;
@@ -157,6 +175,8 @@ public:
 	FORCEINLINE UCameraComponent* GetCameraComponent() const { return CameraComponent; }
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 	FORCEINLINE bool IsElimmed() const { return bElimmed; }
+	FORCEINLINE float GetHealth() const { return Health; }
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	
 	ABlasterWeapon* GetEquippedWeapon();
 
