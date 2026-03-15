@@ -63,6 +63,14 @@ void ABlasterWeapon::Fire(const FVector& HitTarget)
 	}
 }
 
+void ABlasterWeapon::Dropped()
+{
+	SetWeaponState(EWeaponState::EWS_Dropped);
+	FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepWorld, true);
+	WeaponMesh->DetachFromComponent(DetachmentTransformRules);
+	SetOwner(nullptr);
+}
+
 void ABlasterWeapon::BeginPlay()
 {
 	Super::BeginPlay();
@@ -111,25 +119,6 @@ void ABlasterWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent
 	}
 }
 
-void ABlasterWeapon::OnRep_WeaponState()
-{
-	switch (WeaponState)
-	{
-		case EWeaponState::EWS_Initial:
-			// Handle initial state logic if needed
-			break;
-		case EWeaponState::EWS_Equipped:
-			ShowPickupWidget(false);
-			break;
-		case EWeaponState::EWS_Dropped:
-			// Logic for when the weapon is dropped
-			break;
-		default:
-			break;
-	}
-	// Optionally, update the weapon's appearance or behavior based on the new state
-}
-
 void ABlasterWeapon::SetWeaponState(EWeaponState State)
 {
 	WeaponState = State;
@@ -143,14 +132,42 @@ void ABlasterWeapon::SetWeaponState(EWeaponState State)
 			AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			break;
 		case EWeaponState::EWS_Dropped:
+			if (HasAuthority())
+			{
+				AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+			}
 			ShowPickupWidget(true);
-			AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-			AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-			// Optionally, you can set the weapon's visibility or other properties here
-			// For example, you might want to make the weapon
+			WeaponMesh->SetSimulatePhysics(true);
+			WeaponMesh->SetEnableGravity(true);
+			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 			break;
 		default:
 			break;
 	}
+}
+
+void ABlasterWeapon::OnRep_WeaponState()
+{
+	switch (WeaponState)
+	{
+	case EWeaponState::EWS_Initial:
+		// Handle initial state logic if needed
+		break;
+	case EWeaponState::EWS_Equipped:
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		WeaponMesh->SetSimulatePhysics(false);
+		WeaponMesh->SetEnableGravity(false);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EWeaponState::EWS_Dropped:
+		WeaponMesh->SetSimulatePhysics(true);
+		WeaponMesh->SetEnableGravity(true);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+	default:
+		break;
+	}
+	// Optionally, update the weapon's appearance or behavior based on the new state
 }
 
