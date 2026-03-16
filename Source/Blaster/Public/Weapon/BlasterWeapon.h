@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Weapon/WeaponTypes.h"
 #include "BlasterWeapon.generated.h"
 
 class USkeletalMeshComponent; // forward declaration
@@ -125,6 +126,9 @@ private:
 	
 	UPROPERTY()
 	class ABlasterPlayerController* BlasterPlayerController;
+	
+	UPROPERTY(EditAnywhere)
+	EWeaponType WeaponType;
 
 public:
 	void SetWeaponState(EWeaponState State);
@@ -133,4 +137,5 @@ public:
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 	bool IsEmpty() const;
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 };

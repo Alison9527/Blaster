@@ -12,6 +12,7 @@
 #include "PlayerController/BlasterPlayerController.h"
 #include "Weapon/Casing.h"
 
+
 ABlasterWeapon::ABlasterWeapon()
 {
 	PrimaryActorTick.bCanEverTick = false;

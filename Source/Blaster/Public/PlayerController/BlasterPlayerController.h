@@ -27,5 +27,5 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	class ABlasterHUD* BlasterHUD;
+	class ABlasterHUD* BlasterHUD = nullptr;
 };
