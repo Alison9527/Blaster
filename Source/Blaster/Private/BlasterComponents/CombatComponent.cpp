@@ -319,3 +319,7 @@ void UCombatComponent::EquipWeapon(ABlasterWeapon* WeaponToEquip)
 	Character->bUseControllerRotationYaw = true;
 }
 
+void UCombatComponent::Reload()
+{
+}
+
