@@ -9,6 +9,7 @@
 #include "Animation/AnimationAsset.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "PlayerController/BlasterPlayerController.h"
 #include "Weapon/Casing.h"
 
 ABlasterWeapon::ABlasterWeapon()
@@ -29,46 +30,6 @@ ABlasterWeapon::ABlasterWeapon()
 	
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
 	PickupWidget->SetupAttachment(RootComponent);
-}
-
-void ABlasterWeapon::ShowPickupWidget(bool bShowWidget)
-{
-	if (PickupWidget)
-	{
-		PickupWidget->SetVisibility(bShowWidget);
-	}
-}
-
-void ABlasterWeapon::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ABlasterWeapon, WeaponState);
-}
-
-void ABlasterWeapon::Fire(const FVector& HitTarget)
-{
-	if (WeaponMesh && FireAnimation)
-	{
-		WeaponMesh->PlayAnimation(FireAnimation, false);
-	}
-	if (CasingClass)
-	{
-		const USkeletalMeshSocket* AmmoEjectSocket = WeaponMesh->GetSocketByName(FName("AmmoEject"));
-		if (AmmoEjectSocket)
-		{
-			FTransform SocketTransform = AmmoEjectSocket->GetSocketTransform(WeaponMesh);
-			GetWorld()->SpawnActor<ACasing>(CasingClass, SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator());
-		}
-	}
-}
-
-void ABlasterWeapon::Dropped()
-{
-	SetWeaponState(EWeaponState::EWS_Dropped);
-	FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepWorld, true);
-	WeaponMesh->DetachFromComponent(DetachmentTransformRules);
-	SetOwner(nullptr);
 }
 
 void ABlasterWeapon::BeginPlay()
@@ -95,6 +56,54 @@ void ABlasterWeapon::BeginPlay()
 	}
 }
 
+void ABlasterWeapon::ShowPickupWidget(bool bShowWidget)
+{
+	if (PickupWidget)
+	{
+		PickupWidget->SetVisibility(bShowWidget);
+	}
+}
+
+void ABlasterWeapon::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABlasterWeapon, WeaponState);
+	DOREPLIFETIME(ABlasterWeapon, Ammo);
+}
+
+void ABlasterWeapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	if (Owner == nullptr)
+	{
+		BlasterOwnerCharacter = nullptr;
+		BlasterPlayerController = nullptr;
+	}
+	else
+	{
+		SetHUDAmmo();
+	}
+}
+
+void ABlasterWeapon::Fire(const FVector& HitTarget)
+{
+	if (WeaponMesh && FireAnimation)
+	{
+		WeaponMesh->PlayAnimation(FireAnimation, false);
+	}
+	if (CasingClass)
+	{
+		const USkeletalMeshSocket* AmmoEjectSocket = WeaponMesh->GetSocketByName(FName("AmmoEject"));
+		if (AmmoEjectSocket)
+		{
+			FTransform SocketTransform = AmmoEjectSocket->GetSocketTransform(WeaponMesh);
+			GetWorld()->SpawnActor<ACasing>(CasingClass, SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator());
+		}
+	}
+	SpendRound();
+}
+
 void ABlasterWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -116,6 +125,39 @@ void ABlasterWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent
 	{
 		// PickupWidget->SetVisibility(false);
 		BlasterCharacter->SetOverlappingWeapon(nullptr);
+	}
+}
+
+void ABlasterWeapon::SetHUDAmmo()
+{
+	BlasterOwnerCharacter = BlasterOwnerCharacter == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : BlasterOwnerCharacter;
+	if (BlasterOwnerCharacter)
+	{
+		BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) : BlasterPlayerController;
+		if (BlasterPlayerController)
+		{
+			BlasterPlayerController->SetHUDWeaponAmmo(Ammo);
+		}
+	}
+}
+
+void ABlasterWeapon::SpendRound()
+{
+	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
+	SetHUDAmmo();
+}
+
+
+void ABlasterWeapon::OnRep_Ammo()
+{
+	BlasterOwnerCharacter = BlasterOwnerCharacter == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : BlasterOwnerCharacter;
+	if (BlasterOwnerCharacter)
+	{
+		BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) : BlasterPlayerController;
+		if (BlasterPlayerController)
+		{
+			BlasterPlayerController->SetHUDWeaponAmmo(Ammo);
+		}
 	}
 }
 
@@ -147,6 +189,11 @@ void ABlasterWeapon::SetWeaponState(EWeaponState State)
 	}
 }
 
+bool ABlasterWeapon::IsEmpty() const
+{
+	return Ammo <= 0;
+}
+
 void ABlasterWeapon::OnRep_WeaponState()
 {
 	switch (WeaponState)
@@ -169,5 +216,15 @@ void ABlasterWeapon::OnRep_WeaponState()
 		break;
 	}
 	// Optionally, update the weapon's appearance or behavior based on the new state
+}
+
+void ABlasterWeapon::Dropped()
+{
+	SetWeaponState(EWeaponState::EWS_Dropped);
+	FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepWorld, true);
+	WeaponMesh->DetachFromComponent(DetachmentTransformRules);
+	SetOwner(nullptr);
+	BlasterOwnerCharacter = nullptr;
+	BlasterPlayerController = nullptr;
 }
 

@@ -27,6 +27,8 @@ public:
 	ABlasterWeapon();
 	void ShowPickupWidget(bool bShowWidget);
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void OnRep_Owner() override;
+	void SetHUDAmmo();
 	EWeaponState GetWeaponState() const { return WeaponState; }
 	virtual void Fire(const FVector& HitTarget);
 	void Dropped();
@@ -106,6 +108,23 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
 	TSubclassOf<class ACasing> CasingClass;
+	
+	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Ammo, Category = "Weapon Properties")
+	int32 Ammo = 30;
+	
+	UFUNCTION()
+	void OnRep_Ammo();
+	
+	void SpendRound();
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	int32 MagCapacity = 30;
+	
+	UPROPERTY()
+	class ABlasterCharacter* BlasterOwnerCharacter;
+	
+	UPROPERTY()
+	class ABlasterPlayerController* BlasterPlayerController;
 
 public:
 	void SetWeaponState(EWeaponState State);
@@ -113,4 +132,5 @@ public:
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
+	bool IsEmpty() const;
 };
