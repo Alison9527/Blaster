@@ -229,3 +229,9 @@ void ABlasterWeapon::Dropped()
 	BlasterPlayerController = nullptr;
 }
 
+void ABlasterWeapon::AddAmmo(int32 AmmoToAdd)
+{
+	Ammo = FMath::Clamp(Ammo - AmmoToAdd, 0, MagCapacity);
+	SetHUDAmmo();
+}
+
