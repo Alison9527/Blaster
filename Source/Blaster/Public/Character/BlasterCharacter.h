@@ -7,6 +7,7 @@
 #include "BlasterTypes/TurningInPlace.h"
 #include "Components/TimelineComponent.h"
 #include "Interfaces/InteractWithCrosshairsInterface.h"
+#include "BlasterTypes/CombatState.h"
 #include "BlasterCharacter.generated.h"
 
 UCLASS()
@@ -21,6 +22,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	void PlayFireMontage(bool bAiming);
+	void PlayReloadMontage();
 	void PlayElimMontage();
 	virtual void OnRep_ReplicatedBasedMovement() override;
 
@@ -69,7 +71,7 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(ABlasterWeapon* LastWeapon);
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCombatComponent* CombatComponent;
 
 	UFUNCTION(Server, Reliable)
@@ -184,6 +186,7 @@ public:
 	FORCEINLINE bool IsElimmed() const { return bElimmed; }
 	FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	ECombatState GetCombatState() const;
 	
 	ABlasterWeapon* GetEquippedWeapon();
 

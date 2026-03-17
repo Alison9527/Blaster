@@ -79,4 +79,6 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		// DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation() + MuzzleXVector * 1000.f, FColor::Red); // 在游戏世界中绘制一条红色线段，表示枪口的前方方向，长度为 30 单位
 		// DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), BlasterCharacter->GetHitTarget(), FColor::Green); // 在游戏世界中绘制一条绿色线段，表示从枪口到角色瞄准目标的方向，长度为两者之间的距离
 	}
+
+	bUseFABRIK = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading; // 根据角色的战斗状态决定是否使用 FABRIK IK，通常在重新加载时禁用以避免动画冲突
 }
