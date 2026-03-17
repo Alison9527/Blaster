@@ -9,6 +9,7 @@
 #include "PlayerController/BlasterPlayerController.h"
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerState.h"
+#include "Net/UnrealNetwork.h"
 
 namespace MatchState
 {
@@ -61,14 +62,14 @@ void ABlasterGameMode::OnMatchStateSet()
 {
 	Super::OnMatchStateSet();
 
-	// for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-	// {
-	// 	ABlasterPlayerController* BlasterPlayer = Cast<ABlasterPlayerController>(*It);
-	// 	if (BlasterPlayer)
-	// 	{
-	// 		BlasterPlayer->OnMatchStateSet(MatchState, bTeamsMatch);
-	// 	}
-	// }
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		ABlasterPlayerController* BlasterPlayer = Cast<ABlasterPlayerController>(*It);
+		if (BlasterPlayer)
+		{
+			BlasterPlayer->OnMatchStateSet(MatchState);
+		}
+	}
 }
 
 float ABlasterGameMode::CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage)

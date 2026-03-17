@@ -32,9 +32,11 @@ public:
 	float LevelStartingTime = 0.f;
 
 	bool bTeamsMatch = false;
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnMatchStateSet() override;
+	
 
 private:
 	float CountdownTime = 0.f;
