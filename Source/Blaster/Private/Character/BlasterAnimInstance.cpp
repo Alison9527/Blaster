@@ -81,6 +81,6 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	bUseFABRIK = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading; // 根据角色的战斗状态决定是否使用 FABRIK IK，通常在重新加载时禁用以避免动画冲突
-	bUseAimOffsets = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
+	bUseAimOffsets = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading && !BlasterCharacter->GetDisableGameplay();
 	bTransformRightHand = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
 }

@@ -21,6 +21,7 @@ public:
 	void SetHUDWeaponAmmo(int32 Ammo);
 	void SetHUDCarriedAmmo(int32 Ammo);
 	void SetHUDMatchCountdown(float CountdownTime);
+	void SetHUDAnnouncementCountdown(float CountdownTime);
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaTime) override;
 
@@ -28,6 +29,7 @@ public:
 	virtual void ReceivedPlayer() override;
 	void HandleMatchHasStarted(bool bTeamMatch = false);
 	void OnMatchStateSet(FName State);
+	void HandleCooldown();
 
 protected:
 	virtual void BeginPlay() override;
@@ -62,6 +64,13 @@ protected:
 	UFUNCTION()
 	void OnRep_MatchState();
 
+	UFUNCTION(Server, Reliable)
+	void ServerCheckMatchState();
+
+	// BlasterPlayerController.h
+	UFUNCTION(Client, Reliable)
+	void ClientJoinMidgame(FName StateOfMatch, float Warmup, float Match, float Cooldown, float StartingTime);
+
 	UPROPERTY()
 	class UCharacterOverlay* CharacterOverlay;
 	bool bInitializeCharacterOverlay = false;
@@ -75,6 +84,14 @@ private:
 	UPROPERTY()
 	class ABlasterHUD* BlasterHUD = nullptr;
 
+	UPROPERTY()
+	class ABlasterGameMode* BlasterGameMode = nullptr;
+
+	float WarmupTime = 0.f;
 	float MatchTime = 120.f;
+	float CooldownTime = 0.f;
+	float LevelStartingTime = 0.f;
 	uint32 CountdownInt = 0;
 };
+
+

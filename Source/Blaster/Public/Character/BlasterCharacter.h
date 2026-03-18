@@ -32,6 +32,8 @@ public:
 	void MulticastElim();
 	virtual void Destroyed() override;
 
+	UPROPERTY(Replicated)
+	bool bDisableGameplay = false;
 protected:
 	virtual void BeginPlay() override;
 
@@ -54,6 +56,9 @@ protected:
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamageActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 	void UpdateHUDHealth();
+	// Poll for any relelvant classes and initialize our HUD
+	void PollInit();
+	void RotateInPlace(float DeltaTime);
 	
 private:
 
@@ -168,7 +173,8 @@ private:
 	
 	UPROPERTY(EditAnywhere)
 	class USoundCue* ElimBotSound;
-	
+
+	UPROPERTY()
 	class ABlasterPlayerState* BlasterPlayerState;
 	
 public:
@@ -185,6 +191,8 @@ public:
 	FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	ECombatState GetCombatState() const;
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
+	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	
 	ABlasterWeapon* GetEquippedWeapon();
 
