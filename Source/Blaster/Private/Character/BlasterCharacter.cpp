@@ -141,11 +141,17 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	}
 	StartDissolve();
 	
+	bDisableGameplay = true;
+	if (CombatComponent)
+	{
+		CombatComponent->FireButtonPressed(false);
+	}
+	
 	
 	// Disable character movement and collisions
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
-	bDisableGameplay = true;
+
 	
 	// Disable collision
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -595,7 +601,12 @@ void ABlasterCharacter::Destroyed()
 	{
 		ElimBotComponent->DestroyComponent();
 	}
-	if (CombatComponent && CombatComponent->EquippedWeapon)
+	
+	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	bool bMatchNotInProgress = BlasterGameMode && BlasterGameMode->GetMatchState() != MatchState::InProgress;
+	if (bMatchNotInProgress) return; // 如果比赛不在进行中，则不销毁武器，因为可能是比赛结束后角色被销毁，此时武器可能会被拾取或保留在场景中
+	
+	if (CombatComponent && CombatComponent->EquippedWeapon && bMatchNotInProgress)
 	{
 		CombatComponent->EquippedWeapon->Destroy();
 	}

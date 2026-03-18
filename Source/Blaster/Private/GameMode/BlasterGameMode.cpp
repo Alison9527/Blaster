@@ -9,7 +9,9 @@
 #include "PlayerController/BlasterPlayerController.h"
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerState.h"
+#include "GameState/BlasterGameState.h"
 #include "Net/UnrealNetwork.h"
+
 
 namespace MatchState
 {
@@ -81,9 +83,11 @@ void ABlasterGameMode::PlayerEliminated(class ABlasterCharacter* ElimmedCharacte
 {
 	ABlasterPlayerState* AttackerPlayerState = AttackerController ? Cast<ABlasterPlayerState>(AttackerController->PlayerState) : nullptr;
 	ABlasterPlayerState* VictimPlayerState = VictimController ? Cast<ABlasterPlayerState>(VictimController->PlayerState) : nullptr;
+	ABlasterGameState* BlasterGameState = GetGameState<ABlasterGameState>();
 	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
 	{
 		AttackerPlayerState->AddToScore(1.f);
+		BlasterGameState->UpdateTopScore(AttackerPlayerState);
 	}
 	
 	if (VictimPlayerState)
