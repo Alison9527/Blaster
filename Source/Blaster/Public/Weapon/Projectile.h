@@ -35,6 +35,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	class UParticleSystem* Tracer;
 
+	UPROPERTY(EditAnywhere)
 	class UParticleSystemComponent* TracerComponent = nullptr;
 
 	UPROPERTY(EditAnywhere)

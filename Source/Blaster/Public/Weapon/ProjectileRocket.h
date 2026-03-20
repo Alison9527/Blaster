@@ -19,9 +19,9 @@ public:
 	
 protected:
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
-	float DamageRadius;
-	bool DoFullDamage;
-	float BaseDamage;
+	float DamageRadius = 200.f;
+	bool DoFullDamage = true;
+	float BaseDamage = 100.f;
 	
 private:
 	UPROPERTY(VisibleAnywhere)

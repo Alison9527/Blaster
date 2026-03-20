@@ -103,6 +103,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float ZoomInterpSpeed = 20.f;
 	
+
 	void InterpFOV(float DeltaTime);
 
 	/*
@@ -127,6 +128,9 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	int32 StartingARAmmo = 30;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	int StartingRocketAmmo = 4;
 	
 	void InitializeCarriedAmmo();
 	
