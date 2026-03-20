@@ -360,7 +360,7 @@ void ABlasterPlayerController::HandleMatchHasStarted(bool bTeamMatch)
 		BlasterHUD = BlasterHUD == nullptr ? nullptr : Cast<ABlasterHUD>(BlasterHUD);
 		if (BlasterHUD)
 		{
-			BlasterHUD->AddCharacterOverlay();
+			if (BlasterHUD->CharacterOverlay == nullptr) BlasterHUD->AddCharacterOverlay();
 			if (BlasterHUD->Announcement)
 			{
 				BlasterHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
