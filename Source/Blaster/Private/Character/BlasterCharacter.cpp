@@ -232,6 +232,9 @@ void ABlasterCharacter::PlayReloadMontage()
 		case EWeaponType::EWT_SubmachineGun:
 				SectionName = FName("Submachine");
 				break;
+		case EWeaponType::EWT_Shotgun:
+				SectionName = FName("Shotgun");
+				break;
 			default: ;
 		}
 			
