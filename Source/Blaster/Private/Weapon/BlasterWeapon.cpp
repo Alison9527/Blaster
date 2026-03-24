@@ -17,7 +17,7 @@ ABlasterWeapon::ABlasterWeapon()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
-	SetReplicateMovement(true);
+	AActor::SetReplicateMovement(true);
 	
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);

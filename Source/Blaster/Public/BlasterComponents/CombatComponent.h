@@ -130,7 +130,10 @@ private:
 	int32 StartingARAmmo = 30;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	int StartingRocketAmmo = 4;
+	int32 StartingRocketAmmo = 4;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	int32 StartingPistolAmmo = 15;
 	
 	void InitializeCarriedAmmo();
 	

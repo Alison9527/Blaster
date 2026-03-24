@@ -187,6 +187,7 @@ void UCombatComponent::InitializeCarriedAmmo()
 {
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssaultRifle, StartingARAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_RocketLauncher, StartingRocketAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol, StartingPistolAmmo);
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -290,7 +291,7 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 
 void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 {
-	bAiming = bIsAiming; // 使用 this-> 显式引用类成员变量
+	bAiming = bIsAiming;
 	if (Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = bAiming ? AimWalkSpeed : BaseWalkSpeed;

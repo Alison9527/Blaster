@@ -228,9 +228,9 @@ void ABlasterCharacter::PlayReloadMontage()
 			case EWeaponType::EWT_RocketLauncher:
 				SectionName = FName("RocketLauncher");
 				break;
-				// case EWeaponType::EWT_Pistol:
-			// 	SectionName = FName("Pistol");
-			// 		break;
+		case EWeaponType::EWT_Pistol:
+				SectionName = FName("Pistol");
+				break;
 			// case EWeaponType::EWT_SniperRifle:
 			default: ;
 		}
