@@ -2,9 +2,7 @@
 
 
 #include "Character/BlasterCharacter.h"
-
 #include "Blaster/Blaster.h"
-#include "Blaster/Public/PlayerState/BlasterPlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -231,7 +229,9 @@ void ABlasterCharacter::PlayReloadMontage()
 		case EWeaponType::EWT_Pistol:
 				SectionName = FName("Pistol");
 				break;
-			// case EWeaponType::EWT_SniperRifle:
+		case EWeaponType::EWT_SubmachineGun:
+				SectionName = FName("Submachine");
+				break;
 			default: ;
 		}
 			
