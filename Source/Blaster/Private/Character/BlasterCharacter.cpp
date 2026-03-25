@@ -167,6 +167,16 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	{
 		UGameplayStatics::SpawnSoundAtLocation(this, ElimBotSound, GetActorLocation());
 	}
+
+	bool bHideSniperScope = IsLocallyControlled() &&
+			CombatComponent &&
+			CombatComponent->GetAiming() &&
+				CombatComponent->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
+
+	if (bHideSniperScope)
+	{
+		ShowSniperScopeWidget(false);
+	}
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -185,6 +195,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABlasterCharacter::FireButtonPressed);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ABlasterCharacter::FireButtonReleased);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ABlasterCharacter::ReloadButtonPressed);
+	PlayerInputComponent->BindAction("ThrowGrenade", IE_Pressed, this, &ABlasterCharacter::GrenadeButtonPressed);
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -220,22 +231,30 @@ void ABlasterCharacter::PlayReloadMontage()
 		FName SectionName;
 		switch (CombatComponent->EquippedWeapon->GetWeaponType())
 		{
-			case EWeaponType::EWT_AssaultRifle:
-				SectionName = FName("Rifle");
-				break;
-			case EWeaponType::EWT_RocketLauncher:
-				SectionName = FName("RocketLauncher");
-				break;
+		case EWeaponType::EWT_AssaultRifle:
+			SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_RocketLauncher:
+			SectionName = FName("RocketLauncher");
+			break;
 		case EWeaponType::EWT_Pistol:
-				SectionName = FName("Pistol");
-				break;
+			SectionName = FName("Pistol");
+			break;
 		case EWeaponType::EWT_SubmachineGun:
-				SectionName = FName("Submachine");
-				break;
+			SectionName = FName("Submachine");
+			break;
 		case EWeaponType::EWT_Shotgun:
-				SectionName = FName("Shotgun");
-				break;
-			default: ;
+			SectionName = FName("Shotgun");
+			break;
+		case EWeaponType::EWT_SniperRifle:
+			SectionName = FName("SniperRifle");
+			break;
+		case EWeaponType::EWT_GrenadeLauncher:
+			SectionName = FName("GrenadeLauncher");
+			break;
+		default:
+			SectionName = FName("Rifle");
+			break;
 		}
 			
 		AnimInstance->Montage_JumpToSection(SectionName, ReloadMontage);
@@ -248,6 +267,15 @@ void ABlasterCharacter::PlayElimMontage()
 	if (AnimInstance && ElimMontage)
 	{
 		AnimInstance->Montage_Play(ElimMontage);
+	}
+}
+
+void ABlasterCharacter::PlayThrowGrenadeMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ThrowGrenadeMontage)
+	{
+		AnimInstance->Montage_Play(ThrowGrenadeMontage);
 	}
 }
 
@@ -264,8 +292,16 @@ void ABlasterCharacter::PlayHitReactMontage()
 	}
 }
 
+void ABlasterCharacter::GrenadeButtonPressed()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->ThrowGrenade();
+	}
+}
+
 void ABlasterCharacter::ReceiveDamage(AActor* DamageActor, float Damage, const UDamageType* DamageType,
-	class AController* InstigatorController, AActor* DamageCauser)
+                                      class AController* InstigatorController, AActor* DamageCauser)
 {
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	UpdateHUDHealth();

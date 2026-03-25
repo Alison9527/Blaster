@@ -26,6 +26,14 @@ public:
 	void FinishReloading();
 
 	void FireButtonPressed(bool bPressed);
+
+	UFUNCTION(BlueprintCallable)
+	void ShotgunShellReload();
+
+	void JumpToShotgunEnd() const;
+
+	UFUNCTION(BlueprintCallable)
+	void ThrowGrenadeFinished();
 	
 protected:
 	virtual void BeginPlay() override;
@@ -52,12 +60,17 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerReload();
 
-	void HandleReload();
+	void HandleReload() const;
 	int32 AmountToReload();
 
 private:
+	UPROPERTY()
 	class ABlasterCharacter* Character;
+
+	UPROPERTY()
 	class ABlasterPlayerController* PlayerController;
+
+	UPROPERTY()
 	class ABlasterHUD* HUD;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
@@ -139,6 +152,11 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	int32 StartingShotgunAmmo = 8;
 	
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	int32 StartingSniperAmmo = 10;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	int32 StartingGrenadeLauncherAmmo = 4;
 	
 	void InitializeCarriedAmmo();
 	
@@ -149,6 +167,18 @@ private:
 	void OnRep_CombatState();
 
 	void UpdateAmmoValues();
+	void UpdateShotgunAmmoValues();
+
+	void ThrowGrenade();
+
+	UFUNCTION(Server, Reliable)
+	void ServerThrowGrenade();
+
+	void DropEquippedWeapon();
+	void AttachActorToRightHand(class AActor* ActorToAttach);
+	void UpdateCarriedAmmo();
+	void PlayEquipWeaponSound();
+	void ReloadEmptyWeapon();
 
 public:
 	// GetEquippedWeapon

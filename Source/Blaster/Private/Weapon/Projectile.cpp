@@ -3,6 +3,7 @@
 
 #include "Weapon/Projectile.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "Character/BlasterCharacter.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -27,7 +28,6 @@ AProjectile::AProjectile()
 	CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Block);
 }
 
-
 void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
@@ -43,16 +43,70 @@ void AProjectile::BeginPlay()
 	}
 }
 
+void AProjectile::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+void AProjectile::StartDestroyTimer()
+{
+	GetWorldTimerManager().SetTimer(
+	DestroyTimer,
+	this,
+	&AProjectile::DestroyTimeFinished,
+	DestroyTime
+);
+}
+
+void AProjectile::DestroyTimeFinished()
+{
+	Destroy();
+}
+
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	Destroy();
 }
 
-
-void AProjectile::Tick(float DeltaTime)
+void AProjectile::SpawnTrailSystem()
 {
-	Super::Tick(DeltaTime);
+	if (TrailSystem)
+	{
+		TrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			TrailSystem,
+			GetRootComponent(),
+			FName(),
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::KeepWorldPosition,
+			false
+		);
+	}
+}
 
+void AProjectile::ExplodeDamage()
+{
+	if (APawn* FiringPawn = GetInstigator())
+	{
+		AController* FiringController = FiringPawn->GetController();
+		if (FiringController && HasAuthority())
+		{
+			UGameplayStatics::ApplyRadialDamageWithFalloff(
+				this,
+				BaseDamage,
+				10.f,
+				GetActorLocation(),
+				DamageRadius * 0.5f,
+				DamageRadius,
+				1.f,
+				UDamageType::StaticClass(),
+				TArray<AActor*>(),
+				this,
+				FiringController
+			);
+		}
+	}
 }
 
 void AProjectile::Destroyed()
