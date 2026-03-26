@@ -16,6 +16,7 @@ class BLASTER_API ABlasterPlayerController : public APlayerController
 
 public:
 	void SetHUDHealth(float Health, float MaxHealth);
+	void SetHUDShield(float Shield, float MaxShield);
 	void SetHUDScore(float Score);
 	void SetHUDDefeats(int32 Defeats);
 	void SetHUDWeaponAmmo(int32 Ammo);
@@ -74,16 +75,26 @@ protected:
 
 	UPROPERTY()
 	class UCharacterOverlay* CharacterOverlay;
-	bool bInitializeCharacterOverlay = false;
 
 	float HUDHealth = 0.f;
+	bool bInitializeHealth = false;
 	float HUDMaxHealth = 0.f;
+	
 	float HUDScore = 0.f;
+	bool bInitializeScore = false;
 	int32 HUDDefeats = 0;
+	bool bInitializeDefeats = false;
+	
 	int32 HUDGrenades = 0;
+	bool bInitializeGrenades = false;
+	
+	float HUDShield = 0.f;
+	bool bInitializeShield = false;
+	float HUDMaxShield = 0.f;
 	
 	void HighPingWarning();
 	void StopHighPingWarning();
+	void CheckPing(float DeltaTime);
 	
 private:
 	UPROPERTY()
@@ -103,8 +114,15 @@ private:
 	UPROPERTY(EditAnywhere)
 	float HighPingDuration = 5.f;
 	
+	float PingAnimationRunningTime = 0.f;
+	
 	UPROPERTY(EditAnywhere)
 	float CheckPingFrequency = 20.f;
+	
+	UPROPERTY(EditAnywhere)
+	float HighPingThreshold = 50.f;
+	
+	
 };
 
 

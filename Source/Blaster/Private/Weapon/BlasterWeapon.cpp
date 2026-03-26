@@ -109,7 +109,12 @@ void ABlasterWeapon::Fire(const FVector& HitTarget)
 			GetWorld()->SpawnActor<ACasing>(CasingClass, SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator());
 		}
 	}
-	SpendRound();
+	if (HasAuthority())
+	{
+		// Server-side logic for firing the weapon, such as applying damage, spawning projectiles, etc.
+		SpendRound();
+	}
+
 }
 
 void ABlasterWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

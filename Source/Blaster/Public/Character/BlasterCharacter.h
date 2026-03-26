@@ -39,6 +39,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool bShowScope);
 	
+	void UpdateHUDHealth();
+	void UpdateHUDShield();
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -61,7 +64,6 @@ protected:
 
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamageActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
-	void UpdateHUDHealth();
 	// Poll for any relelvant classes and initialize our HUD
 	void PollInit();
 	void RotateInPlace(float DeltaTime);
@@ -82,6 +84,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCombatComponent* CombatComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UBuffComponent * BuffComponent;
 
 	UFUNCTION(Server, Reliable)
 	void SeverEquipButtonPressed();
@@ -135,7 +140,22 @@ private:
 	float Health = 100.f;
 
 	UFUNCTION()
-	void OnRep_Health();
+	void OnRep_Health(float LastHealth);
+	
+	/*
+	 * Player shield
+	 */
+	
+	
+	UPROPERTY(EditAnywhere, Category = "Player States")	
+	float MaxShield = 100.f;
+	
+	UPROPERTY(ReplicatedUsing = OnRep_Shield, EditAnywhere, Category = "Player States")
+	float Shield = 100.f;
+	
+	UFUNCTION()
+	void OnRep_Shield(float LastShield);
+	
 
 	UPROPERTY()
 	class ABlasterPlayerController* BlasterPlayerController;
@@ -205,12 +225,14 @@ public:
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 	FORCEINLINE bool IsElimmed() const { return bElimmed; }
 	FORCEINLINE float GetHealth() const { return Health; }
+	FORCEINLINE void SetHealth(float HealthAmount) { Health = HealthAmount; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	ECombatState GetCombatState() const;
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
+	FORCEINLINE UBuffComponent* GetBuffComponent() const { return BuffComponent; }
 	
 	ABlasterWeapon* GetEquippedWeapon();
 
