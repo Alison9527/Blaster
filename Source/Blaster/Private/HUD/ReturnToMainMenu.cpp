@@ -12,10 +12,9 @@ void UReturnToMainMenu::MenuSetup()
 {
 	AddToViewport();
 	SetVisibility(ESlateVisibility::Visible);
-	bIsFocusable = true;
-	
-	UWorld* World = GetWorld();
-	if (World)
+	SetIsFocusable(true);
+
+	if (UWorld* World = GetWorld())
 	{
 		PlayerController = PlayerController == nullptr ? World->GetFirstPlayerController() : PlayerController;
 		if (PlayerController)
@@ -32,8 +31,7 @@ void UReturnToMainMenu::MenuSetup()
 		ReturnButton->OnClicked.AddDynamic(this, &UReturnToMainMenu::ReturnButtonClicked);
 	}
 
-	UGameInstance* GameInstance = GetGameInstance();
-	if (GameInstance)
+	if (UGameInstance* GameInstance = GetGameInstance())
 	{
 		MultiplayerSessionsSubsystem = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
 		if (MultiplayerSessionsSubsystem)
@@ -46,8 +44,7 @@ void UReturnToMainMenu::MenuSetup()
 
 void UReturnToMainMenu::MenuTearDown()
 {
-	UWorld* World = GetWorld();
-	if (World)
+	if (UWorld* World = GetWorld())
 	{
 		PlayerController = PlayerController == nullptr ? World->GetFirstPlayerController() : PlayerController;
 		if (PlayerController)

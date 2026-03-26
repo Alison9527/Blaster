@@ -50,6 +50,10 @@ ABlasterCharacter::ABlasterCharacter()
 
 
 	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
+	
+	AttachedGrenade = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AttachedGrenade"));
+	AttachedGrenade->SetupAttachment(GetMesh(), FName("GrenadeSocket"));
+	AttachedGrenade->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 
 	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
@@ -59,11 +63,18 @@ void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	UpdateHUDHealth();
+	
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ABlasterCharacter::ReceiveDamage);
 	}
-	UpdateHUDHealth();
+	
+	if (AttachedGrenade)
+	{
+		AttachedGrenade->SetVisibility(false);
+	}
+
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -303,14 +314,14 @@ void ABlasterCharacter::GrenadeButtonPressed()
 void ABlasterCharacter::ReceiveDamage(AActor* DamageActor, float Damage, const UDamageType* DamageType,
                                       class AController* InstigatorController, AActor* DamageCauser)
 {
+	if (bElimmed) return; // 如果角色已经被淘汰则不处理伤害
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	UpdateHUDHealth();
 	PlayHitReactMontage();
 
 	if (Health == 0.f)
 	{
-		ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
-		if (BlasterGameMode)
+		if (ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>())
 		{
 			BlasterPlayerController = BlasterPlayerController == nullptr ? nullptr : BlasterPlayerController;
 			ABlasterPlayerController* AttackController = Cast<ABlasterPlayerController>(InstigatorController);

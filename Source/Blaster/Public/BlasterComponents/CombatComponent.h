@@ -35,6 +35,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ThrowGrenadeFinished();
 	
+	UFUNCTION(BlueprintCallable)
+	void LaunchGrenade();
+	
+	UFUNCTION(Server, Reliable)
+	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
+	
+	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
+	
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(bool bIsAiming);
@@ -137,6 +145,9 @@ private:
 	
 	TMap<EWeaponType, int32> CarriedAmmoMap;
 	
+	UPROPERTY(EditAnywhere)
+	int32 MaxCarriedAmmo = 500;
+	
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	int32 StartingARAmmo = 30;
 
@@ -168,20 +179,38 @@ private:
 
 	void UpdateAmmoValues();
 	void UpdateShotgunAmmoValues();
+	
+	void UpdateHUDGrenades();
 
 	void ThrowGrenade();
 
 	UFUNCTION(Server, Reliable)
 	void ServerThrowGrenade();
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AProjectile> GrenadeClass;
 
 	void DropEquippedWeapon();
 	void AttachActorToRightHand(class AActor* ActorToAttach);
+	void AttachActorToLeftHand(class AActor* ActorToAttach) const;
 	void UpdateCarriedAmmo();
 	void PlayEquipWeaponSound();
 	void ReloadEmptyWeapon();
+	void ShowAttachedGrenade(bool bShowGrenade) const;
 
 public:
 	// GetEquippedWeapon
 	class ABlasterWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
 	bool GetAiming() const { return bAiming; }
+	
+	FORCEINLINE int32 GetGrenades() const { return Grenades; }
+	
+	UPROPERTY(ReplicatedUsing = OnRep_Grenades)
+	int32 Grenades = 4;
+	
+	UFUNCTION()
+	void OnRep_Grenades();
+	
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	int32 MaxGrenades = 4;
 };
