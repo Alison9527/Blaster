@@ -2,10 +2,10 @@
 
 
 #include "Pickups/Pickup.h"
-
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "Weapon/WeaponTypes.h"
 
 APickup::APickup()
 {
@@ -20,10 +20,15 @@ APickup::APickup()
 	
 	OverlaySphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	OverlaySphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	OverlaySphere->AddLocalOffset(FVector(0.0f, 0.0f, 85.0f));
 	
 	PickupMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PickupMesh"));
 	PickupMesh->SetupAttachment(OverlaySphere);
 	PickupMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PickupMesh->SetRelativeScale3D(FVector(5.f, 5.f, 5.f));
+	
+	PickupMesh->SetRenderCustomDepth(true);
+	PickupMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
 
 }
 
@@ -49,9 +54,7 @@ void APickup::Tick(float DeltaTime)
 
 	if (PickupMesh)
 	{
-		FRotator Rotation = GetActorRotation();
-		Rotation.Yaw += BaseTurnRate * DeltaTime;
-		SetActorRotation(Rotation);
+		PickupMesh->AddWorldRotation(FRotator(0.f, BaseTurnRate * DeltaTime, 0.f));
 	}
 }
 
