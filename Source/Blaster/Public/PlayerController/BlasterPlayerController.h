@@ -92,6 +92,12 @@ protected:
 	bool bInitializeShield = false;
 	float HUDMaxShield = 0.f;
 	
+	float HUDCarriedAmmo = 0.f;
+	bool bInitializeCarriedAmmo = false;
+	
+	int32 HUDWeaponAmmo = 0;
+	bool bInitializeWeaponAmmo = false;
+	
 	void HighPingWarning();
 	void StopHighPingWarning();
 	void CheckPing(float DeltaTime);

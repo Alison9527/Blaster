@@ -41,6 +41,9 @@ public:
 	
 	void UpdateHUDHealth();
 	void UpdateHUDShield();
+	void UpdateHUDAmmo();
+	
+	void SpawnDefaultWeapon();
 	
 protected:
 	virtual void BeginPlay() override;
@@ -61,6 +64,8 @@ protected:
 	void FireButtonReleased();
 	void PlayHitReactMontage();
 	void GrenadeButtonPressed();
+	void DropOrDestroyWeapon(ABlasterWeapon* Weapon);
+	void DropOrDestroyWeapons();
 
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamageActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
@@ -212,6 +217,12 @@ private:
 	 */
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* AttachedGrenade;
+	
+	/*
+	 * Default weapon
+	 */
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ABlasterWeapon> DefaultWeaponClass;
 	
 public:
 	void SetOverlappingWeapon(ABlasterWeapon* BlasterWeapon);

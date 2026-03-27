@@ -67,6 +67,9 @@ void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	SpawnDefaultWeapon();
+	UpdateHUDAmmo();
+	
 	UpdateHUDHealth();
 	UpdateHUDShield();
 	
@@ -123,10 +126,7 @@ void ABlasterCharacter::OnRep_ReplicatedBasedMovement()
 
 void ABlasterCharacter::Elim()
 {
-	if (CombatComponent && CombatComponent->EquippedWeapon)
-	{
-		CombatComponent->EquippedWeapon->Dropped();
-	}
+	DropOrDestroyWeapons();
 	MulticastElim();
 	GetWorldTimerManager().SetTimer(
 		ElimTimer,
@@ -409,14 +409,7 @@ void ABlasterCharacter::EquipButtonPressed()
 	if (bDisableGameplay) return; // 如果游戏已结束则不允许移动
 	if (CombatComponent)
 	{
-		if (HasAuthority())
-		{
-			CombatComponent->EquipWeapon(OverlappingWeapon);
-		}
-		else
-		{
-			SeverEquipButtonPressed();
-		}
+		SeverEquipButtonPressed();
 	}
 }
 
@@ -560,7 +553,14 @@ void ABlasterCharacter::SeverEquipButtonPressed_Implementation()
 {
 	if (CombatComponent)
 	{
-		CombatComponent->EquipWeapon(OverlappingWeapon);
+		if (OverlappingWeapon)
+		{
+			CombatComponent->EquipWeapon(OverlappingWeapon);
+		}
+		else if (CombatComponent->ShouldSwapWeapons())
+		{
+			CombatComponent->SwapWeapons();
+		}
 	}
 }
 
@@ -650,6 +650,33 @@ void ABlasterCharacter::UpdateHUDShield()
 	}
 }
 
+void ABlasterCharacter::UpdateHUDAmmo()
+{
+	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if (BlasterPlayerController && CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		BlasterPlayerController->SetHUDWeaponAmmo(CombatComponent->EquippedWeapon->GetAmmo());
+		BlasterPlayerController->SetHUDCarriedAmmo(CombatComponent->CarriedAmmo());
+	}
+}
+
+void ABlasterCharacter::SpawnDefaultWeapon()
+{
+	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	UWorld* World = GetWorld();
+	if (BlasterGameMode && World && DefaultWeaponClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ABlasterWeapon* DefaultWeapon = World->SpawnActor<ABlasterWeapon>(DefaultWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		DefaultWeapon->bDestroyWeapon = true;
+		if (CombatComponent)
+		{
+			CombatComponent->EquipWeapon(DefaultWeapon);
+		}
+	}
+}
+
 void ABlasterCharacter::PollInit()
 {
 	// 如果 BlasterPlayerController 未初始化，尝试获取
@@ -693,6 +720,36 @@ void ABlasterCharacter::ElimTimerFinished()
 	if (BlasterGameMode)
 	{
 		BlasterGameMode->RequestRespawn(this, BlasterPlayerController);
+	}
+}
+
+void ABlasterCharacter::DropOrDestroyWeapon(ABlasterWeapon* Weapon)
+{
+	if (Weapon)
+	{
+		if (Weapon->bDestroyWeapon)
+		{
+			Weapon->Destroy();
+		}
+		else
+		{
+			Weapon->Dropped();
+		}
+	}
+}
+
+void ABlasterCharacter::DropOrDestroyWeapons()
+{
+	if (CombatComponent)
+	{
+		if (CombatComponent->EquippedWeapon)
+		{
+			DropOrDestroyWeapon(CombatComponent->EquippedWeapon);
+		}
+		if (CombatComponent->SecondaryWeapon)
+		{
+			DropOrDestroyWeapon(CombatComponent->SecondaryWeapon);
+		}
 	}
 }
 

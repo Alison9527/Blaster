@@ -20,6 +20,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual  void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	void EquipWeapon(class ABlasterWeapon* WeaponToEquip);
+	void SwapWeapons();
 	void Reload();
 
 	UFUNCTION(BlueprintCallable)
@@ -53,6 +54,9 @@ protected:
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 	
+	UFUNCTION()
+	void OnRep_SecondaryWeapon() const;
+	
 	void Fire();
 	void LocalFire(const FVector_NetQuantize& TraceHitTarget);
 
@@ -84,6 +88,9 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	class ABlasterWeapon* EquippedWeapon;
+	
+	UPROPERTY(ReplicatedUsing = OnRep_SecondaryWeapon)
+	class ABlasterWeapon* SecondaryWeapon;
 
 	UPROPERTY(Replicated)
 	bool bAiming;
@@ -194,10 +201,13 @@ private:
 	void DropEquippedWeapon();
 	void AttachActorToRightHand(class AActor* ActorToAttach);
 	void AttachActorToLeftHand(class AActor* ActorToAttach) const;
+	void AttachActorToBackpack(class AActor* ActorToAttach) const;
 	void UpdateCarriedAmmo();
-	void PlayEquipWeaponSound();
+	void PlayEquipWeaponSound(const class ABlasterWeapon* WeaponToEquip) const;
 	void ReloadEmptyWeapon();
 	void ShowAttachedGrenade(bool bShowGrenade) const;
+	void EquipPrimaryWeapon(class ABlasterWeapon* WeaponToEquip);
+	void EquipSecondaryWeapon(class ABlasterWeapon* WeaponToEquip);
 
 public:
 	// GetEquippedWeapon
@@ -205,6 +215,8 @@ public:
 	bool GetAiming() const { return bAiming; }
 	
 	FORCEINLINE int32 GetGrenades() const { return Grenades; }
+	
+	bool ShouldSwapWeapons() const;
 	
 	UPROPERTY(ReplicatedUsing = OnRep_Grenades)
 	int32 Grenades = 4;
