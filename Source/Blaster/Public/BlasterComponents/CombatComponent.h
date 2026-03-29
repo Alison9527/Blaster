@@ -43,6 +43,7 @@ public:
 	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
 	
 	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
+	bool bLocallyReloading = false;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -158,7 +159,7 @@ private:
 	void StartFireTimer();
 	void FireTimerFinished();
 	
-	bool CanFire();
+	bool CanFire() const;
 	
 	// Carried ammo for the currently-equiped weapon
 	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)

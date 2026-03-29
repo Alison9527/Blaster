@@ -43,7 +43,10 @@ public:
 	void UpdateHUDShield();
 	void UpdateHUDAmmo();
 	
-	void SpawnDefaultWeapon();
+	void SpawnDefaultWeapon() const;
+	
+	UPROPERTY()
+	TMap<FName, class UBoxComponent*> HitCollisionBoxes;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -73,6 +76,61 @@ protected:
 	void PollInit();
 	void RotateInPlace(float DeltaTime);
 	
+	
+	/*
+	 * Hit boxes used for server side rewind
+	 */
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* Head;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* Pelvis;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* Spine_02;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* Spine_03;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* UpperArm_L;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* UpperArm_R;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* LowerArm_L;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* LowerArm_R;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* Hand_L;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* Hand_R;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* Blanket;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* thigh_L;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* thigh_R;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* Calf_L;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* Calf_R;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* Foot_L;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* Foot_R;
+
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -87,11 +145,17 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(ABlasterWeapon* LastWeapon);
 
+	/*
+	 * Blaster Components
+	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCombatComponent* CombatComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UBuffComponent * BuffComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class ULagCompensationActorComponent* LagCompensationActorComponent;
 
 	UFUNCTION(Server, Reliable)
 	void SeverEquipButtonPressed();
@@ -247,6 +311,9 @@ public:
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
 	FORCEINLINE UBuffComponent* GetBuffComponent() const { return BuffComponent; }
+	FORCEINLINE ULagCompensationActorComponent* GetLagCompensationActorComponent() const { return LagCompensationActorComponent; }
+	
+	bool IsLocallyReloading() const;
 	
 	ABlasterWeapon* GetEquippedWeapon();
 
