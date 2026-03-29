@@ -464,15 +464,15 @@ FShotgunServerSideRewindResult ULagCompensationActorComponent::ShotgunConfirmHit
 				TraceEnd,
 				ECC_HitBox
 			);
-			if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(ConfirmHitResult.GetActor()))
+			if (ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(ConfirmHitResult.GetActor()))
 			{
-				if (ShotgunResult.BodyShots.Contains(BlasterCharacter))
+				if (ShotgunResult.BodyShots.Contains(HitCharacter))
 				{
-					ShotgunResult.BodyShots[BlasterCharacter]++;
+					ShotgunResult.BodyShots[HitCharacter]++;
 				}
 				else
 				{
-					ShotgunResult.BodyShots.Emplace(BlasterCharacter, 1);
+					ShotgunResult.BodyShots.Emplace(HitCharacter, 1);
 				}
 			}
 		}
@@ -504,16 +504,16 @@ FShotgunServerSideRewindResult ULagCompensationActorComponent::ShotgunConfirmHit
 				TraceEnd,
 				ECC_HitBox
 			);
-			if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(ConfirmHitResult.GetActor()))
+			if (ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(ConfirmHitResult.GetActor()))
 			{
 				
-				if (ShotgunResult.BodyShots.Contains(BlasterCharacter))
+				if (ShotgunResult.BodyShots.Contains(HitCharacter))
 				{
-					ShotgunResult.BodyShots[BlasterCharacter]++;
+					ShotgunResult.BodyShots[HitCharacter]++;
 				}
 				else
 				{
-					ShotgunResult.BodyShots.Emplace(BlasterCharacter, 1);
+					ShotgunResult.BodyShots.Emplace(HitCharacter, 1);
 				}
 			}
 		}

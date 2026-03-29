@@ -54,7 +54,7 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 						BlasterCharacter,
 						Start,
 						HitTarget,
-						BlasterOwnerController->GetServerTime() - BlasterOwnerController->SingleTripTime,
+						BlasterOwnerController->GetServerTime() - BlasterOwnerController->SingleTripTime
 					);
 				}
 			}
