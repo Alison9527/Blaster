@@ -155,7 +155,7 @@ private:
 	class UBuffComponent * BuffComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class ULagCompensationActorComponent* LagCompensationActorComponent;
+	class ULagCompensationComponent* LagCompensationComponent;
 
 	UFUNCTION(Server, Reliable)
 	void SeverEquipButtonPressed();
@@ -311,7 +311,7 @@ public:
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
 	FORCEINLINE UBuffComponent* GetBuffComponent() const { return BuffComponent; }
-	FORCEINLINE ULagCompensationActorComponent* GetLagCompensationActorComponent() const { return LagCompensationActorComponent; }
+	FORCEINLINE ULagCompensationComponent* GetLagCompensationComponent() const { return LagCompensationComponent; }
 	
 	bool IsLocallyReloading() const;
 	

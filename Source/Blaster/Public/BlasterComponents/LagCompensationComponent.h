@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Containers/List.h"
-#include "LagCompensationActorComponent.generated.h"
+#include "LagCompensationComponent.generated.h"
 
 // 声明UE反射结构体，BlueprintType表示该结构体可在蓝图中使用
 USTRUCT(BlueprintType)
@@ -84,12 +84,12 @@ struct FShotgunServerSideRewindResult
 };  
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class BLASTER_API ULagCompensationActorComponent : public UActorComponent
+class BLASTER_API ULagCompensationComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
-	ULagCompensationActorComponent();
+	ULagCompensationComponent();
 	friend class ABlasterCharacter;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void ShowFramePackage(const FFramePackage& Package, const FColor& Color) const;

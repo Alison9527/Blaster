@@ -10,7 +10,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Weapon/BlasterWeapon.h"
 #include "BlasterComponents/CombatComponent.h"
-#include "BlasterComponents/LagCompensationActorComponent.h"
+#include "BlasterComponents/LagCompensationComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterTypes/TurningInPlace.h"
@@ -43,7 +43,7 @@ ABlasterCharacter::ABlasterCharacter()
 	BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 	BuffComponent->SetIsReplicated(true);
 	
-	LagCompensationActorComponent = CreateDefaultSubobject<ULagCompensationActorComponent>(TEXT("LagCompensationActorComponent"));
+	LagCompensationComponent = CreateDefaultSubobject<ULagCompensationComponent>(TEXT("LagCompensationComponent"));
 
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
@@ -319,12 +319,12 @@ void ABlasterCharacter::PostInitializeComponents()
 		BuffComponent->BlasterCharacter = this;
 		BuffComponent->SetInitalSpeeds(GetCharacterMovement()->MaxWalkSpeed, GetCharacterMovement()->MaxWalkSpeedCrouched);
 	}
-	if (LagCompensationActorComponent)
+	if (LagCompensationComponent)
 	{
-		LagCompensationActorComponent->BlasterCharacter = this;
+		LagCompensationComponent->BlasterCharacter = this;
 		if (ABlasterPlayerController* PlayerController = Cast<ABlasterPlayerController>(Controller))
 		{
-			LagCompensationActorComponent->BlasterPlayerController = PlayerController;
+			LagCompensationComponent->BlasterPlayerController = PlayerController;
 		}
 	}
 }

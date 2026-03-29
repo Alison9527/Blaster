@@ -3,6 +3,10 @@
 
 #include "GameMode/TeamsGameMode.h"
 
+#include "GameState/BlasterGameState.h"
+#include "Kismet/GameplayStatics.h"
+#include "PlayerState/BlasterPlayerState.h"
+
 ATeamsGameMode::ATeamsGameMode()
 {
 	bTeamsMatch = true;

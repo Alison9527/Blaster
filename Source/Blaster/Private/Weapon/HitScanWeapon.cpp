@@ -3,7 +3,7 @@
 
 #include "Weapon/HitScanWeapon.h"
 
-#include "BlasterComponents/LagCompensationActorComponent.h"
+#include "BlasterComponents/LagCompensationComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Character/BlasterCharacter.h"
 #include "Kismet/GameplayStatics.h"
@@ -48,9 +48,9 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 				// void ServerScoreRequest(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitRadius, float HitTime);
 				BlasterOwnerCharacter = BlasterOwnerCharacter == nullptr ? Cast<ABlasterCharacter>(OwnerPawn) : BlasterOwnerCharacter;
 				BlasterOwnerController = BlasterOwnerController == nullptr ? Cast<ABlasterPlayerController>(InstigatorController) : BlasterOwnerController;
-				if (BlasterOwnerController && BlasterOwnerCharacter && BlasterOwnerCharacter->GetLagCompensationActorComponent() && BlasterOwnerCharacter->IsLocallyControlled())
+				if (BlasterOwnerController && BlasterOwnerCharacter && BlasterOwnerCharacter->GetLagCompensationComponent() && BlasterOwnerCharacter->IsLocallyControlled())
 				{
-					BlasterOwnerCharacter->GetLagCompensationActorComponent()->ServerScoreRequest(
+					BlasterOwnerCharacter->GetLagCompensationComponent()->ServerScoreRequest(
 						BlasterCharacter,
 						Start,
 						HitTarget,

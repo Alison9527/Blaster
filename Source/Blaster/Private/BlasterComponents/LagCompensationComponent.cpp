@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BlasterComponents/LagCompensationActorComponent.h"
+#include "BlasterComponents/LagCompensationComponent.h"
 
 #include "Blaster/Blaster.h"
 #include "Character/BlasterCharacter.h"
@@ -9,26 +9,26 @@
 #include "Kismet/GameplayStatics.h"
 #include "Weapon/BlasterWeapon.h"
 
-ULagCompensationActorComponent::ULagCompensationActorComponent()
+ULagCompensationComponent::ULagCompensationComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
 
-void ULagCompensationActorComponent::BeginPlay()
+void ULagCompensationComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-void ULagCompensationActorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void ULagCompensationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
 	SaveFramePackageServer();
 }
 
-void ULagCompensationActorComponent::ShowFramePackage(const FFramePackage& Package, const FColor& Color) const
+void ULagCompensationComponent::ShowFramePackage(const FFramePackage& Package, const FColor& Color) const
 {
 	for (auto& BoxInfo : Package.HitBoxInfo)
 	{
@@ -44,13 +44,13 @@ void ULagCompensationActorComponent::ShowFramePackage(const FFramePackage& Packa
 	}
 }
 
-FServerSideRewindResult ULagCompensationActorComponent::ServerSideRewind(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime)
+FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime)
 {
 	FFramePackage FrameToCheck = GetFrameToCheck(HitCharacter, HitTime);
 	return ConfirmHit(FrameToCheck, HitCharacter, TraceStart, HitLocation);
 }
 
-void ULagCompensationActorComponent::ServerScoreRequest_Implementation(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime)
+void ULagCompensationComponent::ServerScoreRequest_Implementation(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime)
 {
 	FServerSideRewindResult Confirm = ServerSideRewind(HitCharacter, TraceStart, HitLocation, HitTime);
 	if (BlasterCharacter && HitCharacter && BlasterCharacter->GetEquippedWeapon() && Confirm.bHitConfirmed)
@@ -67,13 +67,13 @@ void ULagCompensationActorComponent::ServerScoreRequest_Implementation(ABlasterC
 	}
 }
 
-FServerSideRewindResult ULagCompensationActorComponent::ProjectileServerSideRewind(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime)
+FServerSideRewindResult ULagCompensationComponent::ProjectileServerSideRewind(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime)
 {
 	FFramePackage FrameToCheck = GetFrameToCheck(HitCharacter, HitTime);
 	return ProjectileConfirmHit(FrameToCheck, HitCharacter, TraceStart, InitialVelocity, HitTime);
 }
 
-void ULagCompensationActorComponent::ProjectileServerScoreRequest_Implementation(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime)
+void ULagCompensationComponent::ProjectileServerScoreRequest_Implementation(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime)
 {
 	FServerSideRewindResult Confirm = ProjectileServerSideRewind(HitCharacter, TraceStart, InitialVelocity, HitTime);
 
@@ -91,7 +91,7 @@ void ULagCompensationActorComponent::ProjectileServerScoreRequest_Implementation
 	}
 }
 
-FShotgunServerSideRewindResult ULagCompensationActorComponent::ShotgunServerSideRewind(const TArray<ABlasterCharacter*>& HitCharacters, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations, float HitTime)
+FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunServerSideRewind(const TArray<ABlasterCharacter*>& HitCharacters, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations, float HitTime)
 {
 	TArray<FFramePackage> FrameToCheck;
 	for (ABlasterCharacter* HitCharacter : HitCharacters)
@@ -101,7 +101,7 @@ FShotgunServerSideRewindResult ULagCompensationActorComponent::ShotgunServerSide
 	return ShotgunConfirmHit(FrameToCheck, TraceStart, HitLocations);
 }
 
-void ULagCompensationActorComponent::ShotgunServerScoreRequest_Implementation(const TArray<ABlasterCharacter*>& HitCharacters, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations, float HitTime)
+void ULagCompensationComponent::ShotgunServerScoreRequest_Implementation(const TArray<ABlasterCharacter*>& HitCharacters, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations, float HitTime)
 {
 	FShotgunServerSideRewindResult Confirm = ShotgunServerSideRewind(HitCharacters, TraceStart, HitLocations, HitTime);
 
@@ -129,10 +129,10 @@ void ULagCompensationActorComponent::ShotgunServerScoreRequest_Implementation(co
 	}
 }
 
-FFramePackage ULagCompensationActorComponent::GetFrameToCheck(ABlasterCharacter* HitCharacter, float HitTime)
+FFramePackage ULagCompensationComponent::GetFrameToCheck(ABlasterCharacter* HitCharacter, float HitTime)
 {
 	bool bReturn =
-		HitCharacter == nullptr || HitCharacter->GetLagCompensationActorComponent() == nullptr || HitCharacter->GetLagCompensationActorComponent()->FrameHistory.GetHead() == nullptr ||HitCharacter->GetLagCompensationActorComponent()->FrameHistory.GetTail() == nullptr;
+		HitCharacter == nullptr || HitCharacter->GetLagCompensationComponent() == nullptr || HitCharacter->GetLagCompensationComponent()->FrameHistory.GetHead() == nullptr ||HitCharacter->GetLagCompensationComponent()->FrameHistory.GetTail() == nullptr;
 	
 	if (bReturn) return FFramePackage();
 	// Frame package that we check to verify a hit
@@ -140,7 +140,7 @@ FFramePackage ULagCompensationActorComponent::GetFrameToCheck(ABlasterCharacter*
 	bool bShouldInterpolate = true;
 	
 	// Frame history of the HitCharacter
-	const TDoubleLinkedList<FFramePackage>& History = HitCharacter->GetLagCompensationActorComponent()->FrameHistory;
+	const TDoubleLinkedList<FFramePackage>& History = HitCharacter->GetLagCompensationComponent()->FrameHistory;
 	const float OldestHistoryTime = History.GetTail()->GetValue().Time;
 	const float NewestHistoryTime = History.GetHead()->GetValue().Time;
 	
@@ -192,7 +192,7 @@ FFramePackage ULagCompensationActorComponent::GetFrameToCheck(ABlasterCharacter*
 	return FrameToCheck; 
 }
 
-FFramePackage ULagCompensationActorComponent::InterpolateBetweenFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime)
+FFramePackage ULagCompensationComponent::InterpolateBetweenFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime)
 {
 	const float Distance = YoungerFrame.Time - OlderFrame.Time;
 	const float InterpolationFraction = FMath::Clamp((HitTime - OlderFrame.Time) / Distance, 0.f, 1.f);
@@ -218,7 +218,7 @@ FFramePackage ULagCompensationActorComponent::InterpolateBetweenFrames(const FFr
 	return InterpolatedFrame;
 }
 
-void ULagCompensationActorComponent::CacheBoxPositions(ABlasterCharacter* HitCharacter, FFramePackage& OutFramePackage)
+void ULagCompensationComponent::CacheBoxPositions(ABlasterCharacter* HitCharacter, FFramePackage& OutFramePackage)
 {
 	if (HitCharacter == nullptr) return;
 	for (auto& HitBoxPair : HitCharacter->HitCollisionBoxes)
@@ -234,7 +234,7 @@ void ULagCompensationActorComponent::CacheBoxPositions(ABlasterCharacter* HitCha
 	}
 }
 
-void ULagCompensationActorComponent::MoveBoxes(ABlasterCharacter* HitCharacter, const FFramePackage& FramePackage)
+void ULagCompensationComponent::MoveBoxes(ABlasterCharacter* HitCharacter, const FFramePackage& FramePackage)
 {
 	if (HitCharacter == nullptr) return;
 	for (auto& HitBoxPair : HitCharacter->HitCollisionBoxes)
@@ -251,7 +251,7 @@ void ULagCompensationActorComponent::MoveBoxes(ABlasterCharacter* HitCharacter, 
 	}
 }
 
-void ULagCompensationActorComponent::ResetHitBoxes(ABlasterCharacter* HitCharacter, const FFramePackage& FramePackage)
+void ULagCompensationComponent::ResetHitBoxes(ABlasterCharacter* HitCharacter, const FFramePackage& FramePackage)
 {
 	if (HitCharacter == nullptr) return;
 	for (auto& HitBoxPair : HitCharacter->HitCollisionBoxes)
@@ -269,7 +269,7 @@ void ULagCompensationActorComponent::ResetHitBoxes(ABlasterCharacter* HitCharact
 	}
 }
 
-void ULagCompensationActorComponent::EnableCharacterMeshCollision(ABlasterCharacter* HitCharacter, ECollisionEnabled::Type CollisionEnabled)
+void ULagCompensationComponent::EnableCharacterMeshCollision(ABlasterCharacter* HitCharacter, ECollisionEnabled::Type CollisionEnabled)
 {
 	if (HitCharacter && HitCharacter->GetMesh())
 	{
@@ -277,7 +277,7 @@ void ULagCompensationActorComponent::EnableCharacterMeshCollision(ABlasterCharac
 	}
 }
 
-void ULagCompensationActorComponent::SaveFramePackageServer()
+void ULagCompensationComponent::SaveFramePackageServer()
 {
 	if (BlasterCharacter == nullptr || !BlasterCharacter->HasAuthority()) return;
 	if (FrameHistory.Num() <= 1)
@@ -300,7 +300,7 @@ void ULagCompensationActorComponent::SaveFramePackageServer()
 	}
 }
 
-void ULagCompensationActorComponent::SaveFramePackage(FFramePackage& FramePackage)
+void ULagCompensationComponent::SaveFramePackage(FFramePackage& FramePackage)
 {
 	BlasterCharacter = BlasterCharacter == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : BlasterCharacter;
 	if (BlasterCharacter)
@@ -318,7 +318,7 @@ void ULagCompensationActorComponent::SaveFramePackage(FFramePackage& FramePackag
 	}
 }
 
-FServerSideRewindResult ULagCompensationActorComponent::ConfirmHit(const FFramePackage& FramePackage, ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation)
+FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackage& FramePackage, ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation)
 {
 	if (HitCharacter == nullptr) return FServerSideRewindResult();
 
@@ -369,7 +369,7 @@ FServerSideRewindResult ULagCompensationActorComponent::ConfirmHit(const FFrameP
 	return FServerSideRewindResult{ false, false };
 }
 
-FServerSideRewindResult ULagCompensationActorComponent::ProjectileConfirmHit(const FFramePackage& FramePackage, ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime)
+FServerSideRewindResult ULagCompensationComponent::ProjectileConfirmHit(const FFramePackage& FramePackage, ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime)
 {
 	FFramePackage CurrentFrame;
 	CacheBoxPositions(HitCharacter, CurrentFrame);
@@ -425,7 +425,7 @@ FServerSideRewindResult ULagCompensationActorComponent::ProjectileConfirmHit(con
 	return FServerSideRewindResult{false, false};
 }
 
-FShotgunServerSideRewindResult ULagCompensationActorComponent::ShotgunConfirmHit( const TArray<FFramePackage>& FramePackages, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations)
+FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunConfirmHit( const TArray<FFramePackage>& FramePackages, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations)
 {
 	for (const auto& Frame : FramePackages)
 	{
