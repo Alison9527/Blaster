@@ -342,7 +342,7 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 	}
 }
 
-void ABlasterCharacter::PlayReloadMontage()
+void ABlasterCharacter::PlayReloadMontage() const
 {
 	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
 

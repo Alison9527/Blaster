@@ -237,9 +237,9 @@ void ABlasterPlayerController::ClientReportServerTime_Implementation(float TimeO
     
 	// 1. 计算往返时延 (Round Trip Time)
 	float RoundTripTime = CurrentClientTime - TimeOfClientRequest;
-    
+	
 	// 2. 假设单程延迟是 RTT 的一半
-	float SingleTripTime = RoundTripTime * 0.5f;
+	SingleTripTime = RoundTripTime * 0.5f;
     
 	// 3. 计算当前的实际服务器时间：服务器收到请求时的时刻 + 单程时延
 	float CurrentServerTime = TimeServerReceivedClientRequest + SingleTripTime;

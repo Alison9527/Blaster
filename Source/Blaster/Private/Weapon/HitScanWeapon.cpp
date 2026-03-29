@@ -2,13 +2,14 @@
 
 
 #include "Weapon/HitScanWeapon.h"
+
+#include "BlasterComponents/LagCompensationActorComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Character/BlasterCharacter.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "PlayerController/BlasterPlayerController.h"
 #include "Sound/SoundCue.h"
-#include "Weapon/WeaponTypes.h"
 
 
 void AHitScanWeapon::Fire(const FVector& HitTarget)
@@ -31,33 +32,32 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 		ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(FireHit.GetActor());
 		if (BlasterCharacter  && InstigatorController)
 		{
-			// bool bCauseAuthDamage = !bUseServerSideRewind || OwnerPawn->IsLocallyControlled();
-			// if (HasAuthority() && bCauseAuthDamage)
-			// {
-			// 	const float DamageToCause = FireHit.BoneName.ToString() == FString("head") ? HeadShotDamage : Damage;
-			//
-			// 	UGameplayStatics::ApplyDamage(
-			// 		BlasterCharacter,
-			// 		DamageToCause,
-			// 		InstigatorController,
-			// 		this,
-			// 		UDamageType::StaticClass()
-			// 	);
-			// }
-			// if (!HasAuthority() && bUseServerSideRewind)
-			// {
-			// 	BlasterOwnerCharacter = BlasterOwnerCharacter == nullptr ? Cast<ABlasterCharacter>(OwnerPawn) : BlasterOwnerCharacter;
-			// 	BlasterOwnerController = BlasterOwnerController == nullptr ? Cast<ABlasterPlayerController>(InstigatorController) : BlasterOwnerController;
-			// 	if (BlasterOwnerController && BlasterOwnerCharacter && BlasterOwnerCharacter->GetLagCompensation() && BlasterOwnerCharacter->IsLocallyControlled())
-			// 	{
-			// 		BlasterOwnerCharacter->GetLagCompensation()->ServerScoreRequest(
-			// 			BlasterCharacter,
-			// 			Start,
-			// 			HitTarget,
-			// 			BlasterOwnerController->GetServerTime() - BlasterOwnerController->SingleTripTime
-			// 		);
-			// 	}
-			// }
+			if (HasAuthority() && !bUseServerSideRewind)
+			{
+				UGameplayStatics::ApplyDamage(
+					BlasterCharacter,
+					Damage,
+					InstigatorController,
+					this,
+					UDamageType::StaticClass()
+				);
+			}
+			
+			if (!HasAuthority() && bUseServerSideRewind)
+			{
+				// void ServerScoreRequest(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitRadius, float HitTime);
+				BlasterOwnerCharacter = BlasterOwnerCharacter == nullptr ? Cast<ABlasterCharacter>(OwnerPawn) : BlasterOwnerCharacter;
+				BlasterOwnerController = BlasterOwnerController == nullptr ? Cast<ABlasterPlayerController>(InstigatorController) : BlasterOwnerController;
+				if (BlasterOwnerController && BlasterOwnerCharacter && BlasterOwnerCharacter->GetLagCompensationActorComponent() && BlasterOwnerCharacter->IsLocallyControlled())
+				{
+					BlasterOwnerCharacter->GetLagCompensationActorComponent()->ServerScoreRequest(
+						BlasterCharacter,
+						Start,
+						HitTarget,
+						BlasterOwnerController->GetServerTime() - BlasterOwnerController->SingleTripTime,
+					);
+				}
+			}
 		}
 		if (ImpactParticles)
 		{

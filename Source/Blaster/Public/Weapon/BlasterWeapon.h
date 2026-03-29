@@ -129,8 +129,39 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
 	float SphereRadius = 75.f;
 	
+	UPROPERTY(EditAnywhere)
+	float Damage = 20.f;
+	
+	UPROPERTY(EditAnywhere)
+	float HeadShotDamage = 40.f;
+	
+	UPROPERTY(EditAnywhere)
+	bool bUseServerSideRewind = false;
+	
+	UPROPERTY()
+	class ABlasterCharacter* BlasterOwnerCharacter;
+	
+	UPROPERTY()
+	class ABlasterPlayerController* BlasterOwnerController;
+	
 	UE::Math::TVector2<double> ScatterSphereRadius;
 
+public:
+	void SetWeaponState(EWeaponState State);
+	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
+	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
+	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+	FORCEINLINE int32 GetAmmo() const { return Ammo; }
+	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
+	FORCEINLINE float GetDamage() const { return Damage; }
+	FORCEINLINE float GetHeadShotDamage() const { return HeadShotDamage; }
+	// FORCEINLINE ETeam GetTeam() const { return Team; }
+	FORCEINLINE void SetSquence() { Sequence = 0; }
+	bool IsEmpty() const;
+	bool IsFull() const;
+	
 private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
@@ -172,24 +203,6 @@ private:
 	// Incremented in SpendRound, decremented in ClientUpdateAmmo. Used to prevent client-side prediction from making Ammo go negative.
 	int32 Sequence = 0;
 	
-	UPROPERTY()
-	class ABlasterCharacter* BlasterOwnerCharacter;
-	
-	UPROPERTY()
-	class ABlasterPlayerController* BlasterPlayerController;
-	
 	UPROPERTY(EditAnywhere)
 	EWeaponType WeaponType;
-
-public:
-	void SetWeaponState(EWeaponState State);
-	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
-	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
-	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
-	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
-	bool IsEmpty() const;
-	bool IsFull() const;
-	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
-	FORCEINLINE int32 GetAmmo() const { return Ammo; }
-	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 };

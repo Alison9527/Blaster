@@ -22,7 +22,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	void PlayFireMontage(bool bAiming);
-	void PlayReloadMontage();
+	void PlayReloadMontage() const;
 	void PlayElimMontage();
 	void PlayThrowGrenadeMontage();
 	virtual void OnRep_ReplicatedBasedMovement() override;

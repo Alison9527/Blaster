@@ -32,6 +32,8 @@ public:
 	void HandleMatchHasStarted(bool bTeamMatch = false);
 	void OnMatchStateSet(FName State);
 	void HandleCooldown();
+	
+	float SingleTripTime = 0.f;
 
 protected:
 	virtual void BeginPlay() override;

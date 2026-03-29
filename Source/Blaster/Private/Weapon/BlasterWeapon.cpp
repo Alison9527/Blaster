@@ -86,7 +86,7 @@ void ABlasterWeapon::OnRep_Owner()
 	if (Owner == nullptr)
 	{
 		BlasterOwnerCharacter = nullptr;
-		BlasterPlayerController = nullptr;
+		BlasterOwnerController = nullptr;
 	}
 	else
 	{
@@ -149,10 +149,10 @@ void ABlasterWeapon::SetHUDAmmo()
 	BlasterOwnerCharacter = BlasterOwnerCharacter == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : BlasterOwnerCharacter;
 	if (BlasterOwnerCharacter)
 	{
-		BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) : BlasterPlayerController;
-		if (BlasterPlayerController)
+		BlasterOwnerController = BlasterOwnerController == nullptr ? Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) : BlasterOwnerController;
+		if (BlasterOwnerController)
 		{
-			BlasterPlayerController->SetHUDWeaponAmmo(Ammo);
+			BlasterOwnerController->SetHUDWeaponAmmo(Ammo);
 		}
 	}
 }
@@ -295,7 +295,7 @@ void ABlasterWeapon::Dropped()
 	WeaponMesh->DetachFromComponent(DetachmentTransformRules);
 	SetOwner(nullptr);
 	BlasterOwnerCharacter = nullptr;
-	BlasterPlayerController = nullptr;
+	BlasterOwnerController = nullptr;
 }
 
 FVector ABlasterWeapon::TraceEndWithScatter(const FVector& HitTarget) const
