@@ -17,8 +17,7 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
 	if (OwnerPawn == nullptr) return;
 	AController* InstigatorController = OwnerPawn->GetController();
 
-	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName("MuzzleFlash");
-	if (MuzzleFlashSocket)
+	if (const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName("MuzzleFlash"))
 	{
 		const FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
 		const FVector Start = SocketTransform.GetLocation();
@@ -30,12 +29,9 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
 			FHitResult FireHit;
 			WeaponTraceHit(Start, HitTarget, FireHit);
 
-			ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(FireHit.GetActor());
-			if (BlasterCharacter)
+			if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(FireHit.GetActor()))
 			{
-				const float bHeadShot = FireHit.BoneName.ToString() == FString("head");
-
-				if (bHeadShot)
+				if (const float bHeadShot = FireHit.BoneName.ToString() == FString("head"))
 				{
 					if (HeadShotHitMap.Contains(BlasterCharacter)) HeadShotHitMap[BlasterCharacter]++;
 					else HeadShotHitMap.Emplace(BlasterCharacter, 1);
@@ -80,51 +76,6 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
 				HitCharacters.AddUnique(HitPair.Key);
 			}
 		}
-
-
-		// for (auto HeadShotHitPair : HeadShotHitMap)
-		// {
-		// 	if (HeadShotHitPair.Key)
-		// 	{
-		// 		if (DamageMap.Contains(HeadShotHitPair.Key)) DamageMap[HeadShotHitPair.Key] += HeadShotHitPair.Value * HeadShotDamage;
-		// 		else DamageMap.Emplace(HeadShotHitPair.Key, HeadShotHitPair.Value * HeadShotDamage);
-		//
-		// 		HitCharacters.AddUnique(HeadShotHitPair.Key);
-		// 	}
-		// }
-		
-		// for (auto DamagePair : DamageMap)
-		// {
-		// 	if (DamagePair.Key && InstigatorController)
-		// 	{
-		// 		bool bCauseAuthDamage = !bUseServerSideRewind || OwnerPawn->IsLocallyControlled();
-		// 		if (HasAuthority() && bCauseAuthDamage)
-		// 		{
-		// 			UGameplayStatics::ApplyDamage(
-		// 				DamagePair.Key,
-		// 				DamagePair.Value,
-		// 				InstigatorController,
-		// 				this,
-		// 				UDamageType::StaticClass()
-		// 			);
-		// 		}
-		// 	}
-		// }
-
-		// if (!HasAuthority() && bUseServerSideRewind)
-		// {
-		// 	BlasterOwnerCharacter = BlasterOwnerCharacter == nullptr ? Cast<ABlasterCharacter>(OwnerPawn) : BlasterOwnerCharacter;
-		// 	BlasterOwnerController = BlasterOwnerController == nullptr ? Cast<ABlasterPlayerController>(InstigatorController) : BlasterOwnerController;
-		// 	if (BlasterOwnerController && BlasterOwnerCharacter && BlasterOwnerCharacter->GetLagCompensation() && BlasterOwnerCharacter->IsLocallyControlled())
-		// 	{
-		// 		BlasterOwnerCharacter->GetLagCompensation()->ShotgunServerScoreRequest(
-		// 			HitCharacters,
-		// 			Start,
-		// 			HitTargets,
-		// 			BlasterOwnerController->GetServerTime() - BlasterOwnerController->SingleTripTime
-		// 		);
-		// 	}
-		// }
 	}
 }
 

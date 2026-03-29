@@ -12,6 +12,7 @@
 #include "PlayerController/BlasterPlayerController.h"
 #include "Weapon/Casing.h"
 #include "BlasterComponents/CombatComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 ABlasterWeapon::ABlasterWeapon()
@@ -77,7 +78,6 @@ void ABlasterWeapon::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ABlasterWeapon, WeaponState);
-	DOREPLIFETIME(ABlasterWeapon, Ammo);
 }
 
 void ABlasterWeapon::OnRep_Owner()
@@ -161,24 +161,42 @@ void ABlasterWeapon::SpendRound()
 {
 	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
 	SetHUDAmmo();
+	if (HasAuthority())
+	{
+		ClientUpdateAmmo(Ammo);
+	}
+	else
+	{
+		++Sequence;
+	}
 }
 
-void ABlasterWeapon::OnRep_Ammo()
+void ABlasterWeapon::ClientUpdateAmmo_Implementation(int32 ServerAmmo)
 {
+	if (HasAuthority()) return;
+	Ammo = ServerAmmo;
+	--Sequence;
+	Ammo -= Sequence;
+	SetHUDAmmo();
+}
+
+void ABlasterWeapon::AddAmmo(int32 AmmoToAdd)
+{
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
+	SetHUDAmmo();
+	ClientAddAmmo(AmmoToAdd);
+}
+
+void ABlasterWeapon::ClientAddAmmo_Implementation(int32 AmmoToAdd)
+{
+	if (HasAuthority()) return;
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
 	BlasterOwnerCharacter = BlasterOwnerCharacter == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : BlasterOwnerCharacter;
 	if (BlasterOwnerCharacter)
 	{
-		BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) : BlasterPlayerController;
-		if (BlasterPlayerController)
-		{
-			BlasterPlayerController->SetHUDWeaponAmmo(Ammo);
-		}
-	}
-
-	if (BlasterOwnerCharacter && BlasterOwnerCharacter->GetCombatComponent() && IsFull())
-	{
 		BlasterOwnerCharacter->GetCombatComponent()->JumpToShotgunEnd();
 	}
+	SetHUDAmmo();
 }
 
 void ABlasterWeapon::OnWeaponStateSet()
@@ -280,13 +298,23 @@ void ABlasterWeapon::Dropped()
 	BlasterPlayerController = nullptr;
 }
 
-void ABlasterWeapon::AddAmmo(int32 AmmoToAdd)
+FVector ABlasterWeapon::TraceEndWithScatter(const FVector& HitTarget) const
 {
-	Ammo = FMath::Clamp(Ammo - AmmoToAdd, 0, MagCapacity);
-	SetHUDAmmo();
+	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName("MuzzleFlash");
+	if (MuzzleFlashSocket == nullptr) return FVector();
+	const FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+	const FVector TraceStart = SocketTransform.GetLocation();
+	
+	const FVector ToTargetNormalized = (HitTarget - TraceStart).GetSafeNormal();
+	const FVector SphereCenter = TraceStart + ToTargetNormalized * DistanceToSphere;
+	const FVector RandVec = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(0.f, SphereRadius);
+	const FVector EndLoc = SphereCenter + RandVec;
+	const FVector ToEndLoc = EndLoc - TraceStart;
+
+	return FVector(TraceStart + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size());
 }
 
-void ABlasterWeapon::EnableCustomDepth(bool bEnable)
+void ABlasterWeapon::EnableCustomDepth(bool bEnable) const
 {
 	if (WeaponMesh)
 	{
