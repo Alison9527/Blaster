@@ -97,7 +97,7 @@ void ABlasterGameMode::PlayerEliminated(class ABlasterCharacter* ElimmedCharacte
 	
 	if (ElimmedCharacter)
 	{
-		ElimmedCharacter->Elim();
+		ElimmedCharacter->Elim(true);
 	}
 	// if (AttackerController == nullptr || AttackerController->PlayerState == nullptr) return;
 	// if (VictimController == nullptr || VictimController->PlayerState == nullptr) return;
