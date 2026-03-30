@@ -10,6 +10,9 @@
 #include "BlasterTypes/CombatState.h"
 #include "BlasterCharacter.generated.h"
 
+enum class ETeam : uint8;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
+
 UCLASS()
 class BLASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
 {
@@ -47,6 +50,21 @@ public:
 	
 	UPROPERTY()
 	TMap<FName, class UBoxComponent*> HitCollisionBoxes;
+
+	bool bFinishedSwapping = false;
+
+	UFUNCTION(Server, Reliable)
+	void ServerLeaveGame();
+
+	FOnLeftGame OnLeftGame;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastGainedTheLead();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastLostTheLead();
+
+	void SetTeamColor(ETeam Team);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -214,8 +232,6 @@ private:
 	/*
 	 * Player shield
 	 */
-	
-	
 	UPROPERTY(EditAnywhere, Category = "Player States")	
 	float MaxShield = 100.f;
 	
@@ -224,6 +240,24 @@ private:
 	
 	UFUNCTION()
 	void OnRep_Shield(float LastShield);
+
+	/*
+	 * 团队颜色
+	 */
+	UPROPERTY(EditAnywhere, Category = Elim)
+	UMaterialInstance* RedDissolveMathInst;
+
+	UPROPERTY(EditAnywhere, Category = Elim)
+	UMaterialInstance* RedMaterial;
+
+	UPROPERTY(EditAnywhere, Category = Elim)
+	UMaterialInstance* BlueDissolveMathInst;
+
+	UPROPERTY(EditAnywhere, Category = Elim)
+	UMaterialInstance* BlueMaterial;
+
+	UPROPERTY(EditAnywhere, Category = Elim)
+	UMaterialInstance* OriginalMaterial;
 	
 
 	UPROPERTY()

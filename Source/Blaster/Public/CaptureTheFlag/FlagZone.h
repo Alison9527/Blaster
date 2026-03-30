@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BlasterTypes/Team.h"
 #include "GameFramework/Actor.h"
 #include "FlagZone.generated.h"
 
@@ -11,16 +12,20 @@ class BLASTER_API AFlagZone : public AActor
 {
 	GENERATED_BODY()
 	
-public:	
-	// Sets default values for this actor's properties
+public:
 	AFlagZone();
 
+	UPROPERTY(EditAnywhere)
+	ETeam Team;
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UFUNCTION()
+	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResul);
+
+private:
+
+	UPROPERTY(EditAnywhere)
+	class USphereComponent* ZoneSphere;
 
 };

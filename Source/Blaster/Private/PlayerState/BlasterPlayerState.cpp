@@ -13,6 +13,50 @@ ABlasterPlayerState::ABlasterPlayerState()
     Defeats = 0;
 }
 
+void ABlasterPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(ABlasterPlayerState, Defeats);
+	DOREPLIFETIME(ABlasterPlayerState, Team);
+}
+
+void ABlasterPlayerState::OnRep_Score()
+{
+	Super::OnRep_Score();
+
+	 OwnerCharacter =  OwnerCharacter == nullptr ? Cast<ABlasterCharacter>(GetPawn()) :  OwnerCharacter;
+	if ( OwnerCharacter)
+	{
+		OwnerController = OwnerController == nullptr ? Cast<ABlasterPlayerController>( OwnerCharacter->Controller) : OwnerController;
+		if (OwnerController)
+		{
+			OwnerController->SetHUDScore(GetScore());
+		}
+	}
+}
+
+void ABlasterPlayerState::OnRep_Defeats()
+{
+	 OwnerCharacter =  OwnerCharacter == nullptr ? Cast<ABlasterCharacter>(GetPawn()) :  OwnerCharacter;
+	if ( OwnerCharacter)
+	{
+		OwnerController = OwnerController == nullptr ? Cast<ABlasterPlayerController>( OwnerCharacter->Controller) : OwnerController;
+		if (OwnerController)
+		{
+			OwnerController->SetHUDDefeats(Defeats);
+		}
+	}
+}
+
+void ABlasterPlayerState::OnRep_Team()
+{
+	if (ABlasterCharacter* BCharacter = Cast<ABlasterCharacter>(GetPawn()))
+	{
+		BCharacter->SetTeamColor(Team);
+	}
+}
+
 void ABlasterPlayerState::AddToScore(float ScoreAmount)
 {
     // Use getter to obtain current score and set the new score
@@ -51,37 +95,12 @@ void ABlasterPlayerState::AddToDefeats(float DefeatsAmount)
 	}
 }
 
-void ABlasterPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+void ABlasterPlayerState::SetTeam(ETeam TeamToSet)
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME(ABlasterPlayerState, Defeats);
-}
+	Team = TeamToSet;
 
-void ABlasterPlayerState::OnRep_Score()
-{
-	Super::OnRep_Score();
-	
-	OwnerCharacter = OwnerCharacter == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : OwnerCharacter;
-	if (OwnerCharacter)
+	if (ABlasterCharacter* BCharacter = Cast<ABlasterCharacter>(GetPawn()))
 	{
-		OwnerController = OwnerController == nullptr ? Cast<ABlasterPlayerController>(OwnerCharacter->GetController()) : OwnerController;
-		if (OwnerController)
-		{
-			OwnerController->SetHUDHealth(OwnerCharacter->GetHealth(), OwnerCharacter->GetMaxHealth());
-		}
-	}
-}
-
-void ABlasterPlayerState::OnRep_Defeats()
-{
-	OwnerCharacter = OwnerCharacter == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : OwnerCharacter;
-	if (OwnerCharacter)
-	{
-		OwnerController = OwnerController == nullptr ? Cast<ABlasterPlayerController>(OwnerCharacter->GetController()) : OwnerController;
-		if (OwnerController)
-		{
-			OwnerController->SetHUDHealth(OwnerCharacter->GetHealth(), OwnerCharacter->GetMaxHealth());
-		}
+		BCharacter->SetTeamColor(Team);
 	}
 }

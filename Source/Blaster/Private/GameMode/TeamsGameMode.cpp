@@ -3,8 +3,10 @@
 
 #include "GameMode/TeamsGameMode.h"
 
+#include "BlasterTypes/Team.h"
 #include "GameState/BlasterGameState.h"
 #include "Kismet/GameplayStatics.h"
+#include "PlayerController/BlasterPlayerController.h"
 #include "PlayerState/BlasterPlayerState.h"
 
 ATeamsGameMode::ATeamsGameMode()
@@ -16,8 +18,7 @@ void ATeamsGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	ABlasterGameState* BGameState = Cast<ABlasterGameState>(UGameplayStatics::GetGameState(this));
-	if (BGameState)
+	if (ABlasterGameState* BGameState = Cast<ABlasterGameState>(UGameplayStatics::GetGameState(this)))
 	{
 		ABlasterPlayerState* BPState = NewPlayer->GetPlayerState<ABlasterPlayerState>();
 		if (BPState && BPState->GetTeam() == ETeam::ET_NoTeam)
@@ -75,8 +76,7 @@ void ATeamsGameMode::HandleMatchHasStarted()
 {
 	Super::HandleMatchHasStarted();
 
-	ABlasterGameState* BGameState = Cast<ABlasterGameState>(UGameplayStatics::GetGameState(this));
-	if (BGameState)
+	if (ABlasterGameState* BGameState = Cast<ABlasterGameState>(UGameplayStatics::GetGameState(this)))
 	{
 		for (auto PState : BGameState->PlayerArray)
 		{

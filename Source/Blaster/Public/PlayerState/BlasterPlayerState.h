@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BlasterTypes/Team.h"
 #include "GameFramework/PlayerState.h"
 #include "BlasterPlayerState.generated.h"
 
@@ -16,6 +17,7 @@ class BLASTER_API ABlasterPlayerState : public APlayerState
 	
 public:
 	ABlasterPlayerState();
+	
 	/*
 	 * Replication notifies
 	 */
@@ -23,9 +25,14 @@ public:
 	
 	UFUNCTION()
 	void OnRep_Defeats();
+
+	UFUNCTION()
+	void OnRep_Team();
 	
 	void AddToScore(float ScoreAmount);
 	void AddToDefeats(float DefeatsAmount);
+	void SetTeam(ETeam TeamToSet);
+	FORCEINLINE ETeam GetTeam() const { return Team; }
 	
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
@@ -33,11 +40,15 @@ protected:
 private:
     UPROPERTY(Transient)
     class ABlasterPlayerController* OwnerController;
+	
     UPROPERTY(Transient)
     class ABlasterCharacter* OwnerCharacter;
     
     UPROPERTY(ReplicatedUsing = OnRep_Defeats)
     int32 Defeats;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Team)
+	ETeam Team = ETeam::ET_NoTeam;
 };
 
 

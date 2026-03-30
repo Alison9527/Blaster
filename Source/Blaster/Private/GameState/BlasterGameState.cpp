@@ -4,12 +4,15 @@
 #include "GameState/BlasterGameState.h"
 #include "PlayerState/BlasterPlayerState.h"
 #include "Net/UnrealNetwork.h"
+#include "PlayerController/BlasterPlayerController.h"
 
 void ABlasterGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ABlasterGameState, TopScoringPlayers);
+	DOREPLIFETIME(ABlasterGameState, RedTeamScore);
+	DOREPLIFETIME(ABlasterGameState, BlueTeamScore);
 }
 
 void ABlasterGameState::UpdateTopScore(class ABlasterPlayerState* ScoringPlayer)  // 定义更新最高分的方法，参数为得分玩家状态指针
@@ -28,5 +31,39 @@ void ABlasterGameState::UpdateTopScore(class ABlasterPlayerState* ScoringPlayer)
 	else if (ScoringPlayer->GetScore() == TopScore)  // 否则，如果该玩家的分数等于当前最高分
 	{
 		TopScoringPlayers.AddUnique(ScoringPlayer);  // 将该玩家加入列表（使用AddUnique避免重复添加同一玩家）
+	}
+}
+
+void ABlasterGameState::RedTeamScores()
+{
+	++RedTeamScore;
+	if (ABlasterPlayerController* BlasterPlayerController = Cast<ABlasterPlayerController>(GetWorld()->GetFirstPlayerController()))
+	{
+		BlasterPlayerController->SetHUDRedTeamScore(RedTeamScore);
+	}
+}
+
+void ABlasterGameState::BlueTeamScores()
+{
+	++BlueTeamScore;
+	if (ABlasterPlayerController* BlasterPlayerController = Cast<ABlasterPlayerController>(GetWorld()->GetFirstPlayerController()))
+	{
+		BlasterPlayerController->SetHUDBlueTeamScore(BlueTeamScore);
+	}
+}
+
+void ABlasterGameState::OnRep_RedTeamScore()
+{
+	if (ABlasterPlayerController* BlasterPlayerController = Cast<ABlasterPlayerController>(GetWorld()->GetFirstPlayerController()))
+	{
+		BlasterPlayerController->SetHUDRedTeamScore(RedTeamScore);
+	}
+}
+
+void ABlasterGameState::OnRep_BlueTeamScore()
+{
+	if (ABlasterPlayerController* BlasterPlayerController = Cast<ABlasterPlayerController>(GetWorld()->GetFirstPlayerController()))
+	{
+		BlasterPlayerController->SetHUDBlueTeamScore(BlueTeamScore);
 	}
 }

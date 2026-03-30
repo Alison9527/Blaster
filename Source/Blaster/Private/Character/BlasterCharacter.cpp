@@ -11,6 +11,7 @@
 #include "Weapon/BlasterWeapon.h"
 #include "BlasterComponents/CombatComponent.h"
 #include "BlasterComponents/LagCompensationComponent.h"
+#include "BlasterTypes/Team.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterTypes/TurningInPlace.h"
@@ -153,6 +154,36 @@ ABlasterCharacter::ABlasterCharacter()
 	Foot_R->SetupAttachment(GetMesh(), FName("foot_r"));
 	Foot_R->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitCollisionBoxes.Add(FName("foot_r"), Foot_R);
+}
+
+void ABlasterCharacter::MulticastGainedTheLead_Implementation()
+{
+}
+
+void ABlasterCharacter::MulticastLostTheLead_Implementation()
+{
+}
+
+void ABlasterCharacter::SetTeamColor(ETeam Team)
+{
+	if (GetMesh() == nullptr || OriginalMaterial == nullptr) return;
+	switch (Team)
+	{
+	case ETeam::ET_RedTeam:
+		GetMesh()->SetMaterial(0, RedMaterial);
+		DissolveMaterialInstance = RedDissolveMathInst;
+		break;
+	case ETeam::ET_BlueTeam:
+		GetMesh()->SetMaterial(0, BlueMaterial);
+		DissolveMaterialInstance = BlueDissolveMathInst;
+		break;
+	case ETeam::ET_NoTeam:
+		GetMesh()->SetMaterial(0, OriginalMaterial);
+		DissolveMaterialInstance = BlueDissolveMathInst;
+		break;
+	default:
+		break;
+	}
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -444,7 +475,6 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamageActor, float Damage, const U
 	}
 	
 	Health = FMath::Clamp(Health - DamageToHealth, 0.f, MaxHealth);
-	
 	UpdateHUDHealth();
 	UpdateHUDShield();
 	PlayHitReactMontage();
@@ -775,6 +805,10 @@ void ABlasterCharacter::SpawnDefaultWeapon() const
 			CombatComponent->EquipWeapon(DefaultWeapon);
 		}
 	}
+}
+
+void ABlasterCharacter::ServerLeaveGame_Implementation()
+{
 }
 
 void ABlasterCharacter::PollInit()
