@@ -20,9 +20,9 @@ public:
 	void ResetFlag();
 
 protected:
+	virtual void BeginPlay() override;
 	virtual void OnEquipped() override;
 	virtual void OnDropped() override;
-	virtual void BeginPlay() override;
 
 private:
 	UPROPERTY(VisibleAnywhere)

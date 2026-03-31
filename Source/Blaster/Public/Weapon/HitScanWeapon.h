@@ -21,17 +21,18 @@ protected:
 	void WeaponTraceHit(const FVector& TraceStart, const FVector& HitTarget, FHitResult& OutHit) const;
 	
 	UPROPERTY(EditAnywhere)
+	class USoundCue* FireSound;
+
+	UPROPERTY(EditAnywhere)
+	class USoundCue* HitSound;
+
+	UPROPERTY(EditAnywhere)
 	class UParticleSystem* ImpactParticles;
 
+private:
 	UPROPERTY(EditAnywhere)
 	class UParticleSystem* BeamParticles;
 
 	UPROPERTY(EditAnywhere)
-	UParticleSystem* MuzzleFlash;
-
-	UPROPERTY(EditAnywhere)
-	USoundCue* FireSound;
-
-	UPROPERTY(EditAnywhere)
-	USoundCue* HitSound;
+	class UParticleSystem* MuzzleFlash;
 };

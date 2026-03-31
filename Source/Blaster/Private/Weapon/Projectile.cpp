@@ -49,26 +49,6 @@ void AProjectile::Tick(float DeltaTime)
 
 }
 
-void AProjectile::StartDestroyTimer()
-{
-	GetWorldTimerManager().SetTimer(
-	DestroyTimer,
-	this,
-	&AProjectile::DestroyTimeFinished,
-	DestroyTime
-);
-}
-
-void AProjectile::DestroyTimeFinished()
-{
-	Destroy();
-}
-
-void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	Destroy();
-}
-
 void AProjectile::SpawnTrailSystem()
 {
 	if (TrailSystem)
@@ -97,8 +77,8 @@ void AProjectile::ExplodeDamage()
 				BaseDamage,
 				10.f,
 				GetActorLocation(),
-				DamageRadius * 0.5f,
-				DamageRadius,
+				DamageInnerRadius,
+				DamageOutRadius,
 				1.f,
 				UDamageType::StaticClass(),
 				TArray<AActor*>(),
@@ -109,8 +89,25 @@ void AProjectile::ExplodeDamage()
 	}
 }
 
+void AProjectile::StartDestroyTimer()
+{
+	GetWorldTimerManager().SetTimer(DestroyTimer, this, &AProjectile::DestroyTimeFinished,DestroyTime);
+}
+
+void AProjectile::DestroyTimeFinished()
+{
+	Destroy();
+}
+
+void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	Destroy();
+}
+
 void AProjectile::Destroyed()
 {
+	Super::Destroyed();
+	
 	if (ImpactParticles)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorLocation(), GetActorRotation());
@@ -119,6 +116,5 @@ void AProjectile::Destroyed()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
 	}
-	Super::Destroyed();
 }
 

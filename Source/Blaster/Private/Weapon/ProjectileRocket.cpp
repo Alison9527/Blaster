@@ -21,11 +21,6 @@ AProjectileRocket::AProjectileRocket()
 	RocketMovementComponent->SetIsReplicated(true);
 }
 
-void AProjectileRocket::Destroyed()
-{
-	Super::Destroyed();
-}
-
 void AProjectileRocket::BeginPlay()
 {
 	Super::BeginPlay();
@@ -60,33 +55,42 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 	{
 		return;
 	}
-
 	
 	ExplodeDamage();
 	StartDestroyTimer();
 
 	if (ImpactParticles)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorLocation(), GetActorRotation());
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorLocation());
 	}
+	
 	if (ImpactSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
 	}
+	
 	if (ProjectileMesh)
 	{
 		ProjectileMesh->SetVisibility(false);
 	}
+	
 	if (CollisionBox)
 	{
 		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+	
 	if (TrailSystemComponent && TrailSystemComponent->GetSystemInstanceController()) 
 	{ 
 		TrailSystemComponent->GetSystemInstanceController()->Deactivate(); 
 	}
+	
 	if (ProjectileLoopComponent && ProjectileLoopComponent->IsPlaying())
 	{
 		ProjectileLoopComponent->Stop();
 	}
+}
+
+void AProjectileRocket::Destroyed()
+{
+	Super::Destroyed();
 }

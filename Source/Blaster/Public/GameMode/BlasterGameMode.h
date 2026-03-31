@@ -22,6 +22,21 @@ public:
 	virtual void RequestRespawn(ACharacter* ElimmedCharacter, AController* ElimmedController);
 	void PlayerLeftGame(class ABlasterPlayerState* PlayerLeaving);
 	virtual float CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage);
+
+	float LevelStartingTime = 0.f;
+	bool bTeamsMatch = false;
+	
+	FORCEINLINE float GetWarmupTime() const { return WarmupTime; }
+	FORCEINLINE float GetMatchTime() const { return MatchTime; }
+	FORCEINLINE float GetCooldownTime() const { return CooldownTime; }
+	
+protected:
+	virtual void BeginPlay() override;
+	virtual void OnMatchStateSet() override;
+	
+private:
+	float CountdownTime = 0.f;
+	
 	UPROPERTY(EditDefaultsOnly)
 	float WarmupTime = 10.f;
 
@@ -30,22 +45,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	float CooldownTime = 10.f;
-
-	float LevelStartingTime = 0.f;
-
-	bool bTeamsMatch = false;
-
-	FORCEINLINE float GetWarmupTime() const { return WarmupTime; }
-	FORCEINLINE float GetMatchTime() const { return MatchTime; }
-	FORCEINLINE float GetCooldownTime() const { return CooldownTime; }
-	
-	
-protected:
-	virtual void BeginPlay() override;
-	virtual void OnMatchStateSet() override;
-	
-private:
-	float CountdownTime = 0.f;
 public:
 	FORCEINLINE float GetCountdownTime() const { return CountdownTime; }
+	FORCEINLINE bool IsTeamsMatch() const { return bTeamsMatch; }
 };

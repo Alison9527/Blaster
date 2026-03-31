@@ -28,8 +28,7 @@ void ACasing::BeginPlay()
 	CasingMesh->AddImpulse(GetActorForwardVector() * ShellEjectImpulse);
 }
 
-void ACasing::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-	FVector NormalImpulse, const FHitResult& Hit)
+void ACasing::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (ShellSound)
 	{

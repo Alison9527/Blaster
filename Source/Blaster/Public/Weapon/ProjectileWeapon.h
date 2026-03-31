@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Weapon/BlasterWeapon.h"
-#include "Projectile.h"
 #include "ProjectileWeapon.generated.h"
 
 /**
@@ -20,5 +19,8 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<AProjectile> ProjectileClass;
+	TSubclassOf<class AProjectile> ProjectileClass;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AProjectile> ServerSideRewindProjectileClass;
 };

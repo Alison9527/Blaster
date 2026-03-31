@@ -2,7 +2,6 @@
 
 
 #include "Weapon/ProjectileGrenade.h"
-
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
