@@ -44,16 +44,17 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 	if (ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>(GetOwner()))
 	{
 		ABlasterPlayerController* OwnerController = Cast<ABlasterPlayerController>(OwnerCharacter->GetController());
-		if (OwnerController)
+		
+		// 服务器端：直接造成伤害
+		if (HasAuthority() && OwnerController)
 		{
 			const float DamageToCause = Hit.BoneName.ToString() == FString("head") ? HeadShotDamage : Damage;
 			UGameplayStatics::ApplyDamage(OtherActor, DamageToCause, OwnerController, this, UDamageType::StaticClass());
-			Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
-			return;
 		}
-		
+
+		// 客户端端：发起服务器倒带请求 (SSR)
 		ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(OtherActor);
-		if (bUseServerSideRewind && OwnerCharacter->GetLagCompensationComponent() && OwnerCharacter->IsLocallyControlled() && HitCharacter)
+		if (!HasAuthority() && bUseServerSideRewind && OwnerCharacter->IsLocallyControlled() && OwnerCharacter->GetLagCompensationComponent() && HitCharacter && OwnerController)
 		{
 			OwnerCharacter->GetLagCompensationComponent()->ProjectileServerScoreRequest(
 				HitCharacter,
@@ -63,6 +64,8 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 			);
 		}
 	}
+	
+	// 最后统一销毁子弹
 	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
 }
 

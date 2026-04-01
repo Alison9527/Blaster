@@ -26,5 +26,5 @@ protected:
 
 private:
 	UPROPERTY(EditAnywhere)
-	class USoundCue* BounceSound;
+	USoundCue* BounceSound;
 };

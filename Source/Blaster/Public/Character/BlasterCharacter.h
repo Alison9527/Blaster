@@ -30,15 +30,15 @@ public:
     virtual void PostInitializeComponents() override;
     
     // 播放射击蒙太奇，bAiming 决定瞄准/腰射动画段
-    void PlayFireMontage(bool bAiming);
+    void PlayFireMontage(bool bAiming) const;
     // 播放换弹蒙太奇
     void PlayReloadMontage() const;
     // 播放淘汰蒙太奇
-    void PlayElimMontage();
+    void PlayElimMontage() const;
     // 播放扔雷蒙太奇
-    void PlayThrowGrenadeMontage();
+    void PlayThrowGrenadeMontage() const;
     // 播放切枪蒙太奇
-    void PlaySwapMontage();
+    void PlaySwapMontage() const;
     
     // 重写基于移动的复制，用于模拟代理转身
     virtual void OnRep_ReplicatedBasedMovement() override;
@@ -115,7 +115,7 @@ protected:
     virtual void Jump() override;
     void FireButtonPressed();
     void FireButtonReleased();
-    void PlayHitReactMontage();
+    void PlayHitReactMontage() const;
     void GrenadeButtonPressed();
     // 丢弃或摧毁武器
     void DropOrDestroyWeapon(ABlasterWeapon* Weapon);
@@ -214,17 +214,17 @@ private:
      * 动画蒙太奇
      */
     UPROPERTY(EditAnywhere, Category = Combat)
-    class UAnimMontage* FireWeaponMontage;
+    UAnimMontage* FireWeaponMontage;
     UPROPERTY(EditAnywhere, Category = Combat)
-    class UAnimMontage* ReloadMontage;
+    UAnimMontage* ReloadMontage;
     UPROPERTY(EditAnywhere, Category = Combat)
-    class UAnimMontage* HitReactMontage;
+    UAnimMontage* HitReactMontage;
     UPROPERTY(EditAnywhere, Category = Combat)
-    class UAnimMontage* ElimMontage;
+    UAnimMontage* ElimMontage;
     UPROPERTY(EditAnywhere, Category = Combat)
-    class UAnimMontage* ThrowGrenadeMontage;
+    UAnimMontage* ThrowGrenadeMontage;
     UPROPERTY(EditAnywhere, Category = Combat)
-    class UAnimMontage* SwapMontage;  // 切枪蒙太奇
+    UAnimMontage* SwapMontage;  // 切枪蒙太奇
 
     bool bRotateRootBone;            // 是否需要旋转根骨骼（用于转身动画）
     float TurnThreshold = 15.f;       // 转身阈值
@@ -304,7 +304,7 @@ private:
     UPROPERTY(VisibleAnywhere)
     UParticleSystemComponent* ElimBotComponent;
     UPROPERTY(EditAnywhere)
-    class USoundCue* ElimBotSound;
+    USoundCue* ElimBotSound;
 
     UPROPERTY()
     class ABlasterPlayerState* BlasterPlayerState;

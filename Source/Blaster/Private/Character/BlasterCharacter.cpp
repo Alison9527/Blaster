@@ -45,8 +45,8 @@ ABlasterCharacter::ABlasterCharacter()
     CameraComponent->bUsePawnControlRotation = false;
 
     // 初始控制器旋转 Yaw 为 false，配合移动时转向运动
-    bUseControllerRotationYaw = false;
-    GetCharacterMovement()->bOrientRotationToMovement = true;
+    bUseControllerRotationYaw = true;
+    GetCharacterMovement()->bOrientRotationToMovement = false;
 
     // 创建战斗组件
     CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
@@ -405,7 +405,7 @@ void ABlasterCharacter::PostInitializeComponents()
 }
 
 // 播放射击蒙太奇
-void ABlasterCharacter::PlayFireMontage(bool bAiming)
+void ABlasterCharacter::PlayFireMontage(bool bAiming) const
 {
     if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
 
@@ -459,7 +459,7 @@ void ABlasterCharacter::PlayReloadMontage() const
 }
 
 // 播放淘汰蒙太奇
-void ABlasterCharacter::PlayElimMontage()
+void ABlasterCharacter::PlayElimMontage() const
 {
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
     if (AnimInstance && ElimMontage)
@@ -469,7 +469,7 @@ void ABlasterCharacter::PlayElimMontage()
 }
 
 // 播放扔雷蒙太奇
-void ABlasterCharacter::PlayThrowGrenadeMontage()
+void ABlasterCharacter::PlayThrowGrenadeMontage() const
 {
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
     if (AnimInstance && ThrowGrenadeMontage)
@@ -479,7 +479,7 @@ void ABlasterCharacter::PlayThrowGrenadeMontage()
 }
 
 // 播放切枪蒙太奇
-void ABlasterCharacter::PlaySwapMontage()
+void ABlasterCharacter::PlaySwapMontage() const
 {
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
     if (AnimInstance && SwapMontage)
@@ -489,7 +489,7 @@ void ABlasterCharacter::PlaySwapMontage()
 }
 
 // 播放受击蒙太奇
-void ABlasterCharacter::PlayHitReactMontage()
+void ABlasterCharacter::PlayHitReactMontage() const
 {
     if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
 

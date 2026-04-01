@@ -2,16 +2,12 @@
 
 
 #include "Weapon/Projectile.h"
-
 #include "NiagaraFunctionLibrary.h"
-#include "Character/BlasterCharacter.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "GameFramework/ProjectileMovementComponent.h"
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystem.h"
 #include "Blaster/Blaster.h"
-
 
 AProjectile::AProjectile()
 {
@@ -46,7 +42,6 @@ void AProjectile::BeginPlay()
 void AProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AProjectile::SpawnTrailSystem()
@@ -91,7 +86,7 @@ void AProjectile::ExplodeDamage()
 
 void AProjectile::StartDestroyTimer()
 {
-	GetWorldTimerManager().SetTimer(DestroyTimer, this, &AProjectile::DestroyTimeFinished,DestroyTime);
+	GetWorldTimerManager().SetTimer(DestroyTimer, this, &AProjectile::DestroyTimeFinished, DestroyTime);
 }
 
 void AProjectile::DestroyTimeFinished()
@@ -117,4 +112,3 @@ void AProjectile::Destroyed()
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
 	}
 }
-

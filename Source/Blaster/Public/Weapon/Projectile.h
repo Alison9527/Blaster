@@ -67,7 +67,7 @@ protected:
 	float DamageInnerRadius = 200.f;
 
 	UPROPERTY(EditAnywhere)
-	float DamageOutRadius = 500.f;;
+	float DamageOutRadius = 500.f; // 修复了多余的分号
 	
 	bool DoFullDamage = true;
 	float BaseDamage = 100.f;

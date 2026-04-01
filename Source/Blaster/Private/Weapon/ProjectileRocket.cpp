@@ -59,14 +59,17 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 	ExplodeDamage();
 	StartDestroyTimer();
 
+	// 播放特效并置空，防止父类 Destroyed() 再次播放
 	if (ImpactParticles)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorLocation());
+		ImpactParticles = nullptr;
 	}
 	
 	if (ImpactSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
+		ImpactSound = nullptr;
 	}
 	
 	if (ProjectileMesh)
