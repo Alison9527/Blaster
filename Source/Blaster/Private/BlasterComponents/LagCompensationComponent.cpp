@@ -402,23 +402,20 @@ FServerSideRewindResult ULagCompensationComponent::ProjectileConfirmHit(const FF
 		EnableCharacterMeshCollision(HitCharacter, ECollisionEnabled::QueryAndPhysics);
 		return FServerSideRewindResult{true, false};
 	}
-	else
+	for (const auto& HitBoxPair : HitCharacter->HitCollisionBoxes)
 	{
-		for (const auto& HitBoxPair : HitCharacter->HitCollisionBoxes)
+		if (HitBoxPair.Value != nullptr)
 		{
-			if (HitBoxPair.Value != nullptr)
-			{
-				HitBoxPair.Value->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-				HitBoxPair.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
-			}
+			HitBoxPair.Value->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			HitBoxPair.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
 		}
-		UGameplayStatics::PredictProjectilePath(this, PathParams, PathResult);
-		if (PathResult.HitResult.bBlockingHit)
-		{
-			ResetHitBoxes(HitCharacter, CurrentFrame);
-			EnableCharacterMeshCollision(HitCharacter, ECollisionEnabled::QueryAndPhysics);
-			return FServerSideRewindResult{true, false};
-		}
+	}
+	UGameplayStatics::PredictProjectilePath(this, PathParams, PathResult);
+	if (PathResult.HitResult.bBlockingHit)
+	{
+		ResetHitBoxes(HitCharacter, CurrentFrame);
+		EnableCharacterMeshCollision(HitCharacter, ECollisionEnabled::QueryAndPhysics);
+		return FServerSideRewindResult{true, false};
 	}
 	ResetHitBoxes(HitCharacter, CurrentFrame);
 	EnableCharacterMeshCollision(HitCharacter, ECollisionEnabled::QueryAndPhysics);
