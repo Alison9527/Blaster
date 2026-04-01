@@ -37,6 +37,10 @@ void AProjectileGrenade::OnBounce(const FHitResult& ImpactResult, const FVector&
 	}
 }
 
+void AProjectileGrenade::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+}
+
 void AProjectileGrenade::Destroyed()
 {
 	ExplodeDamage();

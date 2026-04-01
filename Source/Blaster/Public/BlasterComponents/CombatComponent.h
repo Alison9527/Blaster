@@ -56,7 +56,7 @@ public:
     // 判断当前状态是否允许切换武器
     bool ShouldSwapWeapons() const; 
     // 获取当前手中装备的武器
-    class ABlasterWeapon* GetEquippedWeapon() const { return EquippedWeapon; } 
+    ABlasterWeapon* GetEquippedWeapon() const { return EquippedWeapon; } 
 
     // 暴露给蓝图的函数，作为动画通知 (AnimNotify) 的回调，用于标记切枪动作彻底结束
     UFUNCTION(BlueprintCallable)
@@ -338,7 +338,7 @@ private:
 
     // 夺旗模式中的旗帜实体引用（旗帜通常被视为一种特殊的近战武器或道具）
     UPROPERTY(ReplicatedUsing = OnRep_Flag)
-    class ABlasterWeapon* TheFlag;
+    ABlasterWeapon* TheFlag;
 
     // 旗帜同步回调
     UFUNCTION()
