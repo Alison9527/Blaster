@@ -124,58 +124,62 @@
 //
 // 这套重构后的代码逻辑闭环严密，只要保证碰撞通道（ECC_HitBox）配置正确，就能提供非常现代且优秀的射击手感。
 
+// 记录单个身体部位（如头部、左臂）在某一帧的具体物理状态
 USTRUCT(BlueprintType)
 struct FBoxInformation
 {
 	GENERATED_BODY()
     
 	UPROPERTY()
-	FVector Location;
+	FVector Location;   // 碰撞盒中心点在世界空间的三维坐标
     
 	UPROPERTY()
-	FRotator Rotation;
+	FRotator Rotation;  // 碰撞盒的三维旋转角度
     
 	UPROPERTY()
-	FVector BoxExtent;
+	FVector BoxExtent;  // 碰撞盒的长宽高（半尺寸），通常固定，但为了兼容缩放进行了记录
 };
 
+// 记录玩家在某一精确时间点的所有部位快照（即一帧完整的"录像"）
 USTRUCT(BlueprintType)
 struct FFramePackage
 {
 	GENERATED_BODY()
 	
 	UPROPERTY()
-	float Time;
+	float Time;  // 这一帧记录的服务器确切时间戳
 	
 	UPROPERTY()
-	TMap<FName, FBoxInformation> HitBoxInfo;
+	TMap<FName, FBoxInformation> HitBoxInfo;  // 字典：用名字（如"head"）映射对应的盒子物理状态
 	
 	UPROPERTY()
-	class ABlasterCharacter* BlasterCharacter;
+	class ABlasterCharacter* BlasterCharacter; // 指向被记录的玩家角色的指针
 };
 
+// 服务器判定的最终结果（用于 HitScan 射线武器和 Projectile 投射武器）
 USTRUCT(BlueprintType)
 struct FServerSideRewindResult
 {
 	GENERATED_BODY()
 	
 	UPROPERTY()
-	bool bHitConfirmed;
+	bool bHitConfirmed; // 是否打中了目标？（头或身体都算 true）
 	
 	UPROPERTY()
-	bool bHeadShot;
+	bool bHeadShot;     // 是否是爆头？（用于后续计算弱点伤害加成）
 };
 
+// 霰弹枪专用的判定结果（因为一发包含十几个弹丸，需要统计汇总命中次数）
 USTRUCT(BlueprintType)
 struct FShotgunServerSideRewindResult
 {
 	GENERATED_BODY()
 
 	UPROPERTY()
-	TMap<ABlasterCharacter*, uint32> HeadShots;
+	TMap<ABlasterCharacter*, uint32> HeadShots; // 字典：记录打中了哪个玩家的头，以及命中了多少发弹丸
 
 	UPROPERTY()
-	TMap<ABlasterCharacter*, uint32> BodyShots;
+	TMap<ABlasterCharacter*, uint32> BodyShots; // 字典：记录打中了哪个玩家的身体，以及命中了多少发弹丸
 };  
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -185,17 +189,19 @@ class BLASTER_API ULagCompensationComponent : public UActorComponent
 
 public:	
 	ULagCompensationComponent();
-	friend class ABlasterCharacter;
+	friend class ABlasterCharacter; // 声明友元，允许角色类直接访问组件的私有成员
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	void ShowFramePackage(const FFramePackage& Package, const FColor& Color) const;
+	void ShowFramePackage(const FFramePackage& Package, const FColor& Color) const; // 调试用：在世界中绘制历史帧的碰撞盒
 	
-	// === HitScan 武器回滚 ===
+	// === HitScan 武器（如步枪、狙击枪）回滚 ===
+    // 服务器内部调用的核心倒带函数
 	FServerSideRewindResult ServerSideRewind(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);
 	
+    // 客户端调用的 RPC：向服务器申请“我在 HitTime 这一刻打中他了，请核实”
 	UFUNCTION(Server, Reliable)
 	void ServerScoreRequest(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);
 	
-	// === 投射物 武器回滚 ===
+	// === 投射物 武器（如火箭筒、榴弹）回滚 ===
 	FServerSideRewindResult ProjectileServerSideRewind(ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime);
 	
 	UFUNCTION(Server, Reliable)
@@ -209,16 +215,22 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	void SaveFramePackage(FFramePackage& FramePackage);
-	FFramePackage InterpolateBetweenFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime);
-	void CacheBoxPositions(ABlasterCharacter* HitCharacter, FFramePackage& OutFramePackage);
-	void MoveBoxes(ABlasterCharacter* HitCharacter, const FFramePackage& FramePackage);
-	void ResetHitBoxes(ABlasterCharacter* HitCharacter, const FFramePackage& FramePackage);
-	void EnableCharacterMeshCollision(ABlasterCharacter* HitCharacter, ECollisionEnabled::Type CollisionEnabled);
-	void SaveFramePackageServer();
-	FFramePackage GetFrameToCheck(ABlasterCharacter* HitCharacter, float HitTime);
+    
+    // 录制相关逻辑
+	void SaveFramePackage(FFramePackage& FramePackage); // 将当前碰撞盒状态打包到结构体中
+	void SaveFramePackageServer(); // 服务器每帧调用：维护双向链表，录制新帧并丢弃过旧的历史记录
+    
+    // 历史查找与插值逻辑
+	FFramePackage GetFrameToCheck(ABlasterCharacter* HitCharacter, float HitTime); // 在链表中寻找夹住 HitTime 的两帧并返回插值结果
+	FFramePackage InterpolateBetweenFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime); // 在两帧之间进行位置和旋转的平滑插值
 	
-	// 核心判定逻辑
+    // “时间旅行”的物理操作
+	void CacheBoxPositions(ABlasterCharacter* HitCharacter, FFramePackage& OutFramePackage); // 缓存目标当前的真实位置
+	void MoveBoxes(ABlasterCharacter* HitCharacter, const FFramePackage& FramePackage); // 将目标碰撞盒瞬间拉回过去的历史位置
+	void ResetHitBoxes(ABlasterCharacter* HitCharacter, const FFramePackage& FramePackage); // 将目标碰撞盒恢复到刚刚缓存的真实位置
+	void EnableCharacterMeshCollision(ABlasterCharacter* HitCharacter, ECollisionEnabled::Type CollisionEnabled); // 开启/关闭目标角色外皮（胶囊体/网格体）碰撞，防止挡住射线
+	
+	// 核心判定逻辑（发射射线或预测抛物线）
 	FServerSideRewindResult ConfirmHit(const FFramePackage& FramePackage, ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation);
 	FServerSideRewindResult ProjectileConfirmHit(const FFramePackage& FramePackage, ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime);
 	FShotgunServerSideRewindResult ShotgunConfirmHit(const TArray<FFramePackage>& FramePackages, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations);
@@ -230,8 +242,10 @@ private:
 	UPROPERTY()
 	class ABlasterPlayerController* BlasterPlayerController;
 	
+    // 录像带：使用双向链表（适合频繁在头部插入和尾部删除操作）
 	TDoubleLinkedList<FFramePackage> FrameHistory;
 	
+    // 最多回溯 4 秒前的过去（防止内存溢出；且延迟 4 秒的玩家处于不可玩的极端卡顿状态，不予补偿）
 	UPROPERTY(EditAnywhere)
 	float MaxRecordTime = 4.f;
 };

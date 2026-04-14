@@ -54,14 +54,21 @@ void UReturnToMainMenu::MenuTearDown()
 			PlayerController->SetShowMouseCursor(false);
 		}
 	}
+	
 	if (ReturnButton && ReturnButton->OnClicked.IsBound())
 	{
 		ReturnButton->OnClicked.RemoveDynamic(this, &UReturnToMainMenu::ReturnButtonClicked);
 	}
-	// if (MultiplayerSessionsSubsystem && MultiplayerSessionsSubsystem->MultiplayerOnDestorySessionComplete.IsBound())
-	// {
-	// 	MultiplayerSessionsSubsystem->MultiplayerOnDestorySessionComplete.RemoveDynamic(this, &UReturnToMainMenu::OnDestroySession);
-	// }
+
+	if (UGameInstance* GameInstance = GetGameInstance())
+	{
+		MultiplayerSessionsSubsystem = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
+		if (MultiplayerSessionsSubsystem)
+		{
+			MultiplayerSessionsSubsystem->MultiplayerOnDestroySessionComplete.AddDynamic(this, &UReturnToMainMenu::OnDestroySession);
+		}
+	}
+
 	RemoveFromParent();
 }
 
@@ -70,6 +77,11 @@ bool UReturnToMainMenu::Initialize()
 	if (!Super::Initialize())
 	{
 		return false;
+	}
+
+	if (ReturnButton)
+	{
+		ReturnButton->OnClicked.AddDynamic(this, &UReturnToMainMenu::ReturnButtonClicked);
 	}
 
 	return false;
@@ -82,11 +94,9 @@ void UReturnToMainMenu::OnDestroySession(bool bWasSuccessful)
 		ReturnButton->SetIsEnabled(true);
 		return;
 	}
-	UWorld* World = GetWorld();
-	if (World)
+	if (UWorld* World = GetWorld())
 	{
-		AGameModeBase* GameMode = World->GetAuthGameMode<AGameModeBase>();
-		if (GameMode)
+		if (AGameModeBase* GameMode = World->GetAuthGameMode<AGameModeBase>())
 		{
 			GameMode->ReturnToMainMenuHost();
 		}
@@ -104,15 +114,17 @@ void UReturnToMainMenu::OnDestroySession(bool bWasSuccessful)
 void UReturnToMainMenu::ReturnButtonClicked()
 {
 	ReturnButton->SetIsEnabled(false);
-	
-	UWorld* World = GetWorld();
-	if (World)
+
+	if (MultiplayerSessionsSubsystem)
 	{
-		APlayerController* FirstPlayerController = World->GetFirstPlayerController();
-		if (FirstPlayerController)
+		MultiplayerSessionsSubsystem->DestroySession();
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		if (APlayerController* FirstPlayerController = World->GetFirstPlayerController())
 		{
-			ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(FirstPlayerController->GetPawn());
-			if (BlasterCharacter)
+			if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(FirstPlayerController->GetPawn()))
 			{
 				// BlasterCharacter->ServerLeaveGame();
 				// BlasterCharacter->OnLeftGame.AddDynamic(this, &UReturnToMainMenu::OnPlayerLeftGame);
@@ -127,8 +139,8 @@ void UReturnToMainMenu::ReturnButtonClicked()
 
 void UReturnToMainMenu::OnPlayerLeftGame()
 {
-	if (MultiplayerSessionsSubsystem)
-	{
-		// MultiplayerSessionsSubsystem->DestorySession();
-	}
+	// if (MultiplayerSessionsSubsystem)
+	// {
+	// 	MultiplayerSessionsSubsystem->DestorySession();
+	// }
 }
