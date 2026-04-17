@@ -10,75 +10,6 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanelSlot.h"
 
-void ABlasterHUD::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-
-void ABlasterHUD::AddCharacterOverlay()
-{
-	APlayerController* PlayerController = GetOwningPlayerController();
-	if (PlayerController && CharacterOverlayClass)
-	{
-		CharacterOverlay = CreateWidget<UCharacterOverlay>(PlayerController, CharacterOverlayClass);
-		CharacterOverlay->AddToViewport();
-	}
-}
-
-void ABlasterHUD::AddAnnouncement()
-{
-	APlayerController* PlayerController = GetOwningPlayerController();
-	if (PlayerController && AnnouncementClass)
-	{
-		Announcement = CreateWidget<UAnnouncement>(PlayerController, AnnouncementClass);
-		Announcement->AddToViewport();
-	}
-}
-
-void ABlasterHUD::AddElimAnnouncement(FString Attacker, FString Victim)
-{
-	OwningPlayer = OwningPlayer == nullptr ? GetOwningPlayerController() : OwningPlayer;
-	if (OwningPlayer && ElimAnnouncementClass)
-	{
-		UElimAnnouncement* ElimAnouncementWidget = CreateWidget<UElimAnnouncement>(OwningPlayer, ElimAnnouncementClass);
-		if (ElimAnouncementWidget)
-		{
-			ElimAnouncementWidget->SetElimAnnouncementText(Attacker, Victim);
-			ElimAnouncementWidget->AddToViewport();
-
-			for (UElimAnnouncement* Msg : ElimMessages)
-			{
-				if (Msg && Msg->AnnouncementBox)
-				{
-					UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(Msg->AnnouncementBox);
-					if (CanvasSlot)
-					{
-						FVector2D Position = CanvasSlot->GetPosition();
-						FVector2D NewPosition(
-							CanvasSlot->GetPosition().X,
-							Position.Y - CanvasSlot->GetSize().Y
-						);
-						CanvasSlot->SetPosition(NewPosition);
-					}
-				}
-			}
-
-			ElimMessages.Add(ElimAnouncementWidget);
-
-			FTimerHandle ElimMsgTimer;
-			FTimerDelegate ElimMsgDelegate;
-			ElimMsgDelegate.BindUFunction(this, FName("ElimAnnouncementTimerFinished"), ElimAnouncementWidget);
-			GetWorldTimerManager().SetTimer(
-				ElimMsgTimer,
-				ElimMsgDelegate,
-				ElimAnnouncementTime,
-				false
-			);
-		}
-	}
-}
-
 void ABlasterHUD::DrawHUD()
 {
 	Super::DrawHUD();
@@ -117,6 +48,73 @@ void ABlasterHUD::DrawHUD()
 			DrawCrosshair(HUDPackage.CrosshairsBottom, ViewportCenter, Spread, HUDPackage.CrosshairColor);
 		}
 	}
+}
+
+
+void ABlasterHUD::AddCharacterOverlay()
+{
+	APlayerController* PlayerController = GetOwningPlayerController();
+	if (PlayerController && CharacterOverlayClass)
+	{
+		CharacterOverlay = CreateWidget<UCharacterOverlay>(PlayerController, CharacterOverlayClass);
+		CharacterOverlay->AddToViewport();
+	}
+}
+
+void ABlasterHUD::AddAnnouncement()
+{
+	APlayerController* PlayerController = GetOwningPlayerController();
+	if (PlayerController && AnnouncementClass)
+	{
+		Announcement = CreateWidget<UAnnouncement>(PlayerController, AnnouncementClass);
+		Announcement->AddToViewport();
+	}
+}
+
+void ABlasterHUD::AddElimAnnouncement(const FString& Attacker, const FString& Victim)
+{
+	OwningPlayer = OwningPlayer == nullptr ? GetOwningPlayerController() : OwningPlayer;
+	if (OwningPlayer && ElimAnnouncementClass)
+	{
+		if (UElimAnnouncement* ElimAnouncementWidget = CreateWidget<UElimAnnouncement>(OwningPlayer, ElimAnnouncementClass))
+		{
+			ElimAnouncementWidget->SetElimAnnouncementText(Attacker, Victim);
+			ElimAnouncementWidget->AddToViewport();
+
+			for (UElimAnnouncement* Msg : ElimMessages)
+			{
+				if (Msg && Msg->AnnouncementBox)
+				{
+					if (UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(Msg->AnnouncementBox))
+					{
+						FVector2D Position = CanvasSlot->GetPosition();
+						FVector2D NewPosition(
+							CanvasSlot->GetPosition().X,
+							Position.Y - CanvasSlot->GetSize().Y
+						);
+						CanvasSlot->SetPosition(NewPosition);
+					}
+				}
+			}
+
+			ElimMessages.Add(ElimAnouncementWidget);
+
+			FTimerHandle ElimMsgTimer;
+			FTimerDelegate ElimMsgDelegate;
+			ElimMsgDelegate.BindUFunction(this, FName("ElimAnnouncementTimerFinished"), ElimAnouncementWidget);
+			GetWorldTimerManager().SetTimer(
+				ElimMsgTimer,
+				ElimMsgDelegate,
+				ElimAnnouncementTime,
+				false
+			);
+		}
+	}
+}
+
+void ABlasterHUD::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void ABlasterHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, FVector2D Spread, FLinearColor Color)

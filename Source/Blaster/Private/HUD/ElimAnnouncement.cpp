@@ -4,7 +4,7 @@
 #include "HUD/ElimAnnouncement.h"
 #include "Components/TextBlock.h"
 
-void UElimAnnouncement::SetElimAnnouncementText(FString AttackerName, FString VictimName)
+void UElimAnnouncement::SetElimAnnouncementText(const FString& AttackerName, const FString& VictimName) const
 {
 	FString ElimAnnouncementText = FString::Printf(TEXT("%s elimmed %s!"), *AttackerName, *VictimName);
 	if (AnnouncementText)

@@ -96,8 +96,8 @@ protected:
 
 	void ShowReturnToMainMenu();
 
-	FString GetInfoText(const TArray<class ABlasterPlayerState*>& Players);
-	FString GetTeamsInfoText(class ABlasterGameState* BlasterGameState);
+	FString GetInfoText(const TArray<class ABlasterPlayerState*>& Players) const;
+	static FString GetTeamsInfoText(const class ABlasterGameState* BlasterGameState);
 
 	UPROPERTY()
 	class UCharacterOverlay* CharacterOverlay; 
@@ -108,9 +108,7 @@ private:
 
 	UPROPERTY()
 	class ABlasterGameMode* BlasterGameMode = nullptr; 
-
-	/* 返回主菜单相关 */
-	// ✅ 修复拼写错误：Wdiget -> Widget
+	
 	UPROPERTY(EditAnywhere, Category = HUD)
 	TSubclassOf<class UUserWidget> ReturnToMainMenuWidget; 
 	UPROPERTY()
@@ -123,7 +121,6 @@ private:
 	float CooldownTime = 0.f;
 	float LevelStartingTime = 0.f;
 	
-	// ✅ 修复严重 Bug：将 uint32 改为 int32，防止时间下溢出变成 4294967295
 	int32 CountdownInt = 0; 
 
 	// === HUD 数据缓存 ===

@@ -23,5 +23,4 @@ public:
 
 protected:
 	virtual void HandleMatchHasStarted() override;
-	
 };

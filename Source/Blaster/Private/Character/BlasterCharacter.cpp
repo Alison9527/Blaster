@@ -516,8 +516,11 @@ void ABlasterCharacter::GrenadeButtonPressed()
 void ABlasterCharacter::ReceiveDamage(AActor* DamageActor, float Damage, const UDamageType* DamageType,
                                       class AController* InstigatorController, AActor* DamageCauser)
 {
-    if (bEliminated) return;
-    
+	BlasterGameMode = BlasterGameMode == nullptr ? GetWorld()->GetAuthGameMode<ABlasterGameMode>() : BlasterGameMode;
+	if (bEliminated || BlasterGameMode == nullptr) return;
+	
+	Damage = BlasterGameMode->CalculateDamage(InstigatorController, Controller, Damage);
+	
     float DamageToHealth = Damage;
     // 护盾先吸收伤害
     if (Shield > 0.f)
@@ -1026,7 +1029,7 @@ void ABlasterCharacter::RotateInPlace(float DeltaTime)
 
 void ABlasterCharacter::ElimTimerFinished()
 {
-    ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+    BlasterGameMode = BlasterGameMode == nullptr ? GetWorld()->GetAuthGameMode<ABlasterGameMode>() : BlasterGameMode;
     if (BlasterGameMode && !bLeftGame)
     {
        BlasterGameMode->RequestRespawn(this, BlasterPlayerController);

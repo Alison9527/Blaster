@@ -44,7 +44,7 @@ public:
 	class UAnnouncement* Announcement;
 
 	void AddAnnouncement();
-	void AddElimAnnouncement(FString Attacker, FString Victim);
+	void AddElimAnnouncement(const FString& Attacker, const FString& Victim);
 
 protected:
 	virtual void BeginPlay() override;

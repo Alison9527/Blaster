@@ -7,6 +7,7 @@
 #include "HUD/ReturnToMainMenu.h"
 #include "Character/BlasterCharacter.h"
 #include "BlasterComponents/CombatComponent.h"
+#include "BlasterTypes/Announcement.h"
 #include "GameMode/BlasterGameMode.h"
 #include "GameState/BlasterGameState.h"
 #include "PlayerState/BlasterPlayerState.h"
@@ -90,7 +91,6 @@ void ABlasterPlayerController::ClientElimAnnouncement_Implementation(APlayerStat
 
 void ABlasterPlayerController::ShowReturnToMainMenu()
 {
-	// ✅ 修正拼写错误引用的变量名
 	if (ReturnToMainMenuWidget == nullptr) return; 
 	if (ReturnToMainMenu == nullptr)
 	{
@@ -154,8 +154,7 @@ void ABlasterPlayerController::SetHUDRedTeamScore(int32 RedScore)
 void ABlasterPlayerController::SetHUDBlueTeamScore(int32 BlueScore)
 {
 	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
-	bool bHUDValid = BlasterHUD && BlasterHUD->CharacterOverlay && BlasterHUD->CharacterOverlay->BlueTeamScore;
-	if (bHUDValid)
+	if (bool bHUDValid = BlasterHUD && BlasterHUD->CharacterOverlay && BlasterHUD->CharacterOverlay->BlueTeamScore)
 	{
 		FString ScoreText = FString::Printf(TEXT("%d"), BlueScore);
 		BlasterHUD->CharacterOverlay->BlueTeamScore->SetText(FText::FromString(ScoreText));
@@ -612,7 +611,7 @@ void ABlasterPlayerController::HandleCooldown()
 	}
 }
 
-FString ABlasterPlayerController::GetInfoText(const TArray<class ABlasterPlayerState*>& Players)
+FString ABlasterPlayerController::GetInfoText(const TArray<class ABlasterPlayerState*>& Players) const
 {
 	ABlasterPlayerState* BlasterPlayerState = GetPlayerState<ABlasterPlayerState>();
 	if (BlasterPlayerState == nullptr) return FString();
@@ -620,11 +619,11 @@ FString ABlasterPlayerController::GetInfoText(const TArray<class ABlasterPlayerS
 	FString InfoTextString;
 	if (Players.Num() == 0)
 	{
-		InfoTextString = FString(TEXT("There is no winner"));
+		InfoTextString = Announcement::ThereIsNoWinner;
 	}
 	else if (Players.Num() == 1 && Players[0] == BlasterPlayerState)
 	{
-		InfoTextString = FString(TEXT("You are the winner!"));
+		InfoTextString = Announcement::YouAreTheWinner;
 	}
 	else if (Players.Num() == 1)
 	{
@@ -632,7 +631,8 @@ FString ABlasterPlayerController::GetInfoText(const TArray<class ABlasterPlayerS
 	}
 	else if (Players.Num() > 1) 
 	{
-		InfoTextString = FString(TEXT("Players tied for the win:\n"));
+		InfoTextString = Announcement::PlayersTiedForTheWin;
+		InfoTextString.Append(FString("\n"));
 		for (auto TiedPlayer : Players)
 		{
 			InfoTextString.Append(FString::Printf(TEXT("%s\n"), *TiedPlayer->GetPlayerName()));
@@ -641,7 +641,7 @@ FString ABlasterPlayerController::GetInfoText(const TArray<class ABlasterPlayerS
 	return InfoTextString;
 }
 
-FString ABlasterPlayerController::GetTeamsInfoText(ABlasterGameState* BlasterGameState)
+FString ABlasterPlayerController::GetTeamsInfoText(const ABlasterGameState* BlasterGameState)
 {
 	if (BlasterGameState == nullptr) return FString();
 	
@@ -651,19 +651,22 @@ FString ABlasterPlayerController::GetTeamsInfoText(ABlasterGameState* BlasterGam
 	
 	if (RedTeamScore == 0 && BlueTeamScore == 0)
 	{
-		InfoTextString = FString(TEXT("There is no winner"));
+		InfoTextString = Announcement::ThereIsNoWinner;
 	}
 	else if (RedTeamScore == BlueTeamScore)
 	{
-		InfoTextString = FString::Printf(TEXT("%s\n"), TEXT("Teams tied for the win:"));
-		InfoTextString.Append(TEXT("Red Team\n"));
-		InfoTextString.Append(TEXT("Blue Team\n"));
+		InfoTextString = FString::Printf(TEXT("%s\n"), *Announcement::TeamsTiedForTheWin);
+		InfoTextString.Append(Announcement::RedTeam);
+		InfoTextString.Append(TEXT("\n"));
+		InfoTextString.Append(Announcement::BlueTeam);
+		InfoTextString.Append(TEXT("\n"));
 	}
 	else if (RedTeamScore > BlueTeamScore)
 	{
-		InfoTextString = TEXT("Red Team Wins!\n");
-		InfoTextString.Append(FString::Printf(TEXT("Red Team: %d\n"), RedTeamScore));
-		InfoTextString.Append(FString::Printf(TEXT("Blue Team: %d\n"), BlueTeamScore));
+		InfoTextString = Announcement::RedTeamWins;
+		InfoTextString.Append(TEXT("\n"));
+		InfoTextString.Append(FString::Printf(TEXT("%s: %d\n"), *Announcement::RedTeam, RedTeamScore));
+		InfoTextString.Append(FString::Printf(TEXT("%s: %d\n"), *Announcement::BlueTeam, BlueTeamScore));
 	}
 	else if (BlueTeamScore > RedTeamScore)
 	{

@@ -326,6 +326,9 @@ private:
      */
     UPROPERTY(EditAnywhere)
     TSubclassOf<ABlasterWeapon> DefaultWeaponClass;
+
+    UPROPERTY()
+    class ABlasterGameMode* BlasterGameMode;
     
 public:
     void SetOverlappingWeapon(ABlasterWeapon* BlasterWeapon);

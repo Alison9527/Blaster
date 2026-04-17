@@ -63,9 +63,9 @@ void UReturnToMainMenu::MenuTearDown()
 	if (UGameInstance* GameInstance = GetGameInstance())
 	{
 		MultiplayerSessionsSubsystem = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
-		if (MultiplayerSessionsSubsystem)
+		if (MultiplayerSessionsSubsystem && MultiplayerSessionsSubsystem->MultiplayerOnDestroySessionComplete.IsBound())
 		{
-			MultiplayerSessionsSubsystem->MultiplayerOnDestroySessionComplete.AddDynamic(this, &UReturnToMainMenu::OnDestroySession);
+			MultiplayerSessionsSubsystem->MultiplayerOnDestroySessionComplete.RemoveDynamic(this, &UReturnToMainMenu::OnDestroySession);
 		}
 	}
 
@@ -126,8 +126,8 @@ void UReturnToMainMenu::ReturnButtonClicked()
 		{
 			if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(FirstPlayerController->GetPawn()))
 			{
-				// BlasterCharacter->ServerLeaveGame();
-				// BlasterCharacter->OnLeftGame.AddDynamic(this, &UReturnToMainMenu::OnPlayerLeftGame);
+				BlasterCharacter->ServerLeaveGame();
+				BlasterCharacter->OnLeftGame.AddDynamic(this, &UReturnToMainMenu::OnPlayerLeftGame);
 			}
 			else
 			{
@@ -139,8 +139,8 @@ void UReturnToMainMenu::ReturnButtonClicked()
 
 void UReturnToMainMenu::OnPlayerLeftGame()
 {
-	// if (MultiplayerSessionsSubsystem)
-	// {
-	// 	MultiplayerSessionsSubsystem->DestorySession();
-	// }
+	if (MultiplayerSessionsSubsystem)
+	{
+		MultiplayerSessionsSubsystem->DestroySession();
+	}
 }

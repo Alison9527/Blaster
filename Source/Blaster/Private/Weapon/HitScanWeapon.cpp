@@ -65,14 +65,17 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
        {
           UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, FireHit.ImpactPoint, FireHit.ImpactNormal.Rotation());
        }
+       
        if (HitSound)
        {
           UGameplayStatics::PlaySoundAtLocation(this, HitSound, FireHit.ImpactPoint);
        }
+       
        if (MuzzleFlash)
        {
           UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
        }
+       
        if (FireSound)
        {
           UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
@@ -105,8 +108,7 @@ void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& Hi
 
       if (BeamParticles)
       {
-         UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(World, BeamParticles, TraceStart, FRotator::ZeroRotator, true);
-         if (Beam)
+         if (UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(World, BeamParticles, TraceStart, FRotator::ZeroRotator, true))
          {
             Beam->SetVectorParameter(FName("Target"), BeamEnd);
          }

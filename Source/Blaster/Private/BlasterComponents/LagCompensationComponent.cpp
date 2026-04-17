@@ -247,7 +247,7 @@ void ULagCompensationComponent::SaveFramePackage(FFramePackage& FramePackage)
 			BoxInformation.Rotation = HitBox.Value->GetComponentRotation();
 			BoxInformation.BoxExtent = HitBox.Value->GetScaledBoxExtent();
 			FramePackage.HitBoxInfo.Add(HitBox.Key, BoxInformation);
-		}
+		} 
 	}
 }
 

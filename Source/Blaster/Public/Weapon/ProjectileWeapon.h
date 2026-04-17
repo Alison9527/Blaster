@@ -13,6 +13,7 @@ class AProjectile;
 UCLASS()
 class BLASTER_API AProjectileWeapon : public ABlasterWeapon
 {
+	
 	GENERATED_BODY()
 
 public:
