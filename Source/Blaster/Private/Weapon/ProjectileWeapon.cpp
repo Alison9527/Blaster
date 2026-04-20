@@ -106,11 +106,9 @@ void AProjectileWeapon::SpawnProjectile(const FProjectileSpawnLogic& SpawnLogic,
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = GetOwner();          
-	SpawnParams.Instigator = InstigatorPawn; 
+	SpawnParams.Instigator = InstigatorPawn;
 
-	AProjectile* SpawnedProjectile = World->SpawnActor<AProjectile>(SpawnLogic.ClassToSpawn, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
-	
-	if (SpawnedProjectile)
+	if (AProjectile* SpawnedProjectile = World->SpawnActor<AProjectile>(SpawnLogic.ClassToSpawn, SocketTransform.GetLocation(), TargetRotation, SpawnParams))
 	{
 		SpawnedProjectile->bUseServerSideRewind = SpawnLogic.bSetSSR;
 		

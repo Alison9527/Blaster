@@ -81,8 +81,7 @@ private:
 
     UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
     bool bTransformRightHand;
-
-    // 补全缺失的持旗变量
+    
     UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
     bool bHoldingTheFlag;
 };

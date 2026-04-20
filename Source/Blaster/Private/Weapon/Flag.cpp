@@ -15,7 +15,7 @@ AFlag::AFlag()
     GetPickupWidget()->SetupAttachment(FlagMesh);
 
     // 设置旗帜网格的碰撞响应为忽略所有碰撞
-    FlagMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+    FlagMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
     // 设置旗帜网格的碰撞为无碰撞
     FlagMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

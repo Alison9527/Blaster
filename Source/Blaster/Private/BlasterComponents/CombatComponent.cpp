@@ -1129,7 +1129,7 @@ void UCombatComponent::AttachActorToLeftHand(class AActor* ActorToAttach) const
 }
 
 // 夺旗专用挂载
-void UCombatComponent::AttachFlagToLeftHand(class AActor* Flag)
+void UCombatComponent::AttachFlagToLeftHand(class AActor* Flag) const
 {
     if (BlasterCharacter == nullptr || BlasterCharacter->GetMesh() == nullptr || Flag == nullptr) return;
     

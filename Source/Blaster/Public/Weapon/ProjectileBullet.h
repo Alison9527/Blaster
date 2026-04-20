@@ -18,7 +18,7 @@ public:
 	AProjectileBullet();
 
 #if WITH_EDITOR
-	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& Event) override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& Event) override;
 #endif
 	
 protected:

@@ -82,7 +82,7 @@ protected:
     // 将指定 Actor (武器) 挂载到角色的左手骨骼插槽上
     void AttachActorToLeftHand(class AActor* ActorToAttach) const; 
     // 夺旗模式专用：将旗帜挂载到左手上
-    void AttachFlagToLeftHand(class AActor* Flag); 
+    void AttachFlagToLeftHand(class AActor* Flag) const; 
     // 将指定 Actor (副武器) 挂载到角色的背包（背部）插槽上
     void AttachActorToBackpack(class AActor* ActorToAttach) const; 
     // 内部逻辑：装备主武器

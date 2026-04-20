@@ -70,7 +70,7 @@ public:
     void UpdateHUDGrenade();
     
     // 生成默认武器
-    void SpawnDefaultWeapon() const;
+    void SpawnDefaultWeapon();
     
     // 所有命中碰撞盒子的映射表（服务器回滚用）
     UPROPERTY()

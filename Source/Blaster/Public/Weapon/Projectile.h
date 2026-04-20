@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Projectile.generated.h"
 
+class UNiagaraComponent;
+
 UCLASS()
 class BLASTER_API AProjectile : public AActor
 {
@@ -61,7 +63,7 @@ protected:
 	class UNiagaraSystem* TrailSystem;
 
 	UPROPERTY()
-	class UNiagaraComponent* TrailSystemComponent;
+	UNiagaraComponent* TrailSystemComponent;
 
 	UPROPERTY(EditAnywhere)
 	float DamageInnerRadius = 200.f;

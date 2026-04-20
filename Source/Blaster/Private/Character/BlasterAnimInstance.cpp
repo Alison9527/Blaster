@@ -37,7 +37,6 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
     TurningInPlace = BlasterCharacter->GetTurningInPlace();
     bRotateRootBone = BlasterCharacter->ShouldRotateRootBone();
     bElimmed = BlasterCharacter->IsEliminated();
-    
     bHoldingTheFlag = BlasterCharacter->IsHoldingTheFlag();
 
     // 偏移航向角 (Strafing)
