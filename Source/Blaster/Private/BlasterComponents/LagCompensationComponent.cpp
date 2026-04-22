@@ -233,19 +233,42 @@ void ULagCompensationComponent::SaveFramePackageServer()
 	}
 }
 
+// 定义在 ULagCompensationComponent 类中的函数，用于保存一帧的数据包
+// 传入的参数 FramePackage 是一个引用，函数内部会直接修改并填充这个包的数据
 void ULagCompensationComponent::SaveFramePackage(FFramePackage& FramePackage)
 {
+	// 检查缓存的 BlasterCharacter 成员变量是否为空。
+	// 如果为空，则获取当前组件的拥有者 (GetOwner)，并将其强制转换 (Cast) 为 ABlasterCharacter 类型进行赋值；
+	// 如果不为空，则保持原值。这是一种懒加载/安全检查的写法，避免每次都调用 Cast 消耗性能。
 	BlasterCharacter = BlasterCharacter == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : BlasterCharacter;
+
+	// 确保我们成功获取到了有效的 BlasterCharacter 对象
 	if (BlasterCharacter)
 	{
+		// 获取当前游戏世界的时间（通常是服务器的当前时间），并将其作为时间戳保存到这一帧的数据包中
 		FramePackage.Time = GetWorld()->GetTimeSeconds(); // 盖上当前服务器时间戳
+       
+		// 将这一帧所对应的角色指针也保存到数据包中，方便后续调用时知道是哪个角色的数据
 		FramePackage.BlasterCharacter = BlasterCharacter;
+
+		// 遍历该角色身上所有的命中碰撞盒 (HitCollisionBoxes)。
+		// 假设这是一个 TMap 或者 TArray 包含着类似 <FName, UBoxComponent*> 键值对的数据结构
 		for (const auto& HitBox : BlasterCharacter->HitCollisionBoxes)
 		{
+			// 声明一个局部的结构体变量 BoxInformation，用于存储当前这个碰撞盒的变换信息
 			FBoxInformation BoxInformation;
+
+			// 获取当前碰撞盒组件在世界空间中的绝对位置，并存入结构体
 			BoxInformation.Location = HitBox.Value->GetComponentLocation();
+
+			// 获取当前碰撞盒组件在世界空间中的绝对旋转角度，并存入结构体
 			BoxInformation.Rotation = HitBox.Value->GetComponentRotation();
+
+			// 获取当前碰撞盒组件经过缩放后的包围盒范围（即长宽高的一半），并存入结构体
 			BoxInformation.BoxExtent = HitBox.Value->GetScaledBoxExtent();
+
+			// 将收集好信息的 BoxInformation 添加到 FramePackage 的 HitBoxInfo 集合（TMap）中。
+			// HitBox.Key 通常是该碰撞盒对应的骨骼名称或标识符（比如 "head", "pelvis" 等）
 			FramePackage.HitBoxInfo.Add(HitBox.Key, BoxInformation);
 		} 
 	}
@@ -305,25 +328,22 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackag
 			EnableCharacterMeshCollision(HitCharacter, ECollisionEnabled::QueryAndPhysics);
 			return FServerSideRewindResult{ true, true }; // 返回：命中=真，爆头=真
 		}
-		else 
+		// --- 第二阶段：如果没爆头，开启全身体碰撞盒验证是否打中身体 ---
+		for (auto& HitBoxPair : HitCharacter->HitCollisionBoxes)
 		{
-			// --- 第二阶段：如果没爆头，开启全身体碰撞盒验证是否打中身体 ---
-			for (auto& HitBoxPair : HitCharacter->HitCollisionBoxes)
+			if (HitBoxPair.Value != nullptr)
 			{
-				if (HitBoxPair.Value != nullptr)
-				{
-					HitBoxPair.Value->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-					HitBoxPair.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
-				}
+				HitBoxPair.Value->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				HitBoxPair.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
 			}
-			// 用大号的全身靶子再射一次
-			World->LineTraceSingleByChannel(ConfirmHitResult, TraceStart, TraceEnd, ECC_HitBox);
-			if (ConfirmHitResult.bBlockingHit) 
-			{
-				ResetHitBoxes(HitCharacter, CurrentFrame);
-				EnableCharacterMeshCollision(HitCharacter, ECollisionEnabled::QueryAndPhysics);
-				return FServerSideRewindResult{ true, false }; // 返回：命中=真，爆头=假
-			}
+		}
+		// 用大号的全身靶子再射一次
+		World->LineTraceSingleByChannel(ConfirmHitResult, TraceStart, TraceEnd, ECC_HitBox);
+		if (ConfirmHitResult.bBlockingHit) 
+		{
+			ResetHitBoxes(HitCharacter, CurrentFrame);
+			EnableCharacterMeshCollision(HitCharacter, ECollisionEnabled::QueryAndPhysics);
+			return FServerSideRewindResult{ true, false }; // 返回：命中=真，爆头=假
 		}
 	}
 	

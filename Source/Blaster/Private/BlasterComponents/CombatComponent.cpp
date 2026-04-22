@@ -165,6 +165,8 @@ void UCombatComponent::SwapWeapons()
     BlasterCharacter->PlaySwapMontage();
     // 改变战斗状态为正在切枪，锁定其他动作（如开火）
     CombatState = ECombatState::ECS_SwappingWeapon;
+
+    BlasterCharacter->bFinishedSwapping = false;
     
     // 如果有副武器，关闭其自定义深度（即关闭掉落物高亮描边等效果）
     if (SecondaryWeapon) SecondaryWeapon->EnableCustomDepth(false);
@@ -180,6 +182,8 @@ void UCombatComponent::FinishSwap()
     }
     // 恢复副武器的高亮或物理状态（如果有需求）
     if (SecondaryWeapon) SecondaryWeapon->EnableCustomDepth(true);
+
+    if (BlasterCharacter) BlasterCharacter->bFinishedSwapping = true;
 }
 
 // 动画通知回调：手摸到背后瞬间，执行实际的武器指针与模型插槽交换
